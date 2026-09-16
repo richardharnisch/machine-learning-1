@@ -1,0 +1,431 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=21mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{needspace}
+
+\definecolor{examblue}{HTML}{17365D}
+\definecolor{answergreen}{HTML}{245C3A}
+\definecolor{rulegray}{HTML}{D6DCE4}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textsc{Machine Learning 1}}
+\rhead{\textsc{Mock Exam A -- Answer Key}}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}
+  {\Large\bfseries\color{examblue}}
+  {}{0pt}{}
+  [\vspace{0.15em}\color{rulegray}\titlerule]
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{answergreen}}
+  {}{0pt}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em}
+\setlist[enumerate]{leftmargin=1.8em,itemsep=0.8em,topsep=0.35em}
+\allowdisplaybreaks
+
+\newcommand{\exercise}[2]{%
+  \Needspace{8\baselineskip}%
+  \par\addvspace{1.1em}%
+  {\Large\bfseries\color{examblue}Exercise #1: #2\par}%
+  \nobreak\vspace{0.2em}%
+  {\color{rulegray}\hrule height 0.5pt}%
+  \vspace{0.55em}%
+}
+\newcommand{\answer}{\textbf{Answer.}\ }
+
+\begin{document}
+
+\begin{center}
+  {\Huge\bfseries\color{examblue} Machine Learning 1}\par
+  \vspace{0.35em}
+  {\LARGE\bfseries Mock Exam A -- Answer Key}\par
+  \vspace{0.7em}
+  {\large Worked solutions for all 100 points}
+\end{center}
+
+\vspace{0.8em}
+\fcolorbox{rulegray}{white}{%
+  \begin{minipage}{0.94\textwidth}
+    Equivalent algebraic forms are valid. The derivations below use numerator-layout derivatives where a scalar derivative is a row vector.
+  \end{minipage}%
+}
+
+\exercise{1}{Multivariate derivatives and regularization}
+
+\subsection*{1. Temperature-scaled log-softmax}
+
+\answer Since
+\[
+  \ell_i(x)=\frac{x_i}{\tau}
+  -\log\left(\sum_{k=1}^{d}e^{x_k/\tau}\right),
+\]
+we obtain
+\begin{align*}
+  \frac{\partial\ell_i}{\partial x_j}
+  &=\frac{\delta_{ij}}{\tau}
+    -\frac{e^{x_j/\tau}/\tau}{\sum_{k=1}^{d}e^{x_k/\tau}}\\
+  &=\frac{1}{\tau}(\delta_{ij}-s_j).
+\end{align*}
+
+\subsection*{2. Full Jacobian}
+
+\answer Row $i$, column $j$ must contain $(\delta_{ij}-s_j)/\tau$. Therefore
+\[
+  \boxed{J_{\ell}(x)=\frac{1}{\tau}
+  \left(I_d-\mathbf{1}s(x)^\top\right)}
+  \in\mathbb{R}^{d\times d}.
+\]
+The matrix $\mathbf{1}s^\top$ has entry $s_j$ in every row.
+
+\subsection*{3. Invariant direction}
+
+\answer Since $s^\top\mathbf{1}=1$,
+\[
+  J_{\ell}(x)\mathbf{1}
+  =\frac{1}{\tau}\left(\mathbf{1}
+  -\mathbf{1}s^\top\mathbf{1}\right)=0.
+\]
+For any scalar $c$,
+\[
+  s_i(x+c\mathbf{1})
+  =\frac{e^{c/\tau}e^{x_i/\tau}}
+  {e^{c/\tau}\sum_k e^{x_k/\tau}}
+  =s_i(x).
+\]
+Thus $\ell(x+c\mathbf{1})=\ell(x)$. The directional derivative along $\mathbf{1}$ is consequently zero.
+
+\Needspace{16\baselineskip}
+\subsection*{4. Generalized ridge regression}
+
+\answer The numerator-layout derivative is
+\[
+  \frac{\partial L}{\partial\theta}
+  =\frac{2}{n}(X\theta-y)^\top X+2\gamma\theta^\top R.
+\]
+After transposing the stationarity equation,
+\[
+  \frac{1}{n}X^\top(X\theta-y)+\gamma R\theta=0,
+\]
+so
+\[
+  (X^\top X+n\gamma R)\theta=X^\top y,
+  \qquad
+  \boxed{\widehat{\theta}
+  =(X^\top X+n\gamma R)^{-1}X^\top y}.
+\]
+For any nonzero $v\in\mathbb{R}^p$,
+\[
+  v^\top(X^\top X+n\gamma R)v
+  =\lVert Xv\rVert_2^2+n\gamma v^\top Rv>0.
+\]
+Thus the matrix is positive definite even if $X$ is rank deficient. Equivalently, the Hessian
+\[
+  \frac{2}{n}X^\top X+2\gamma R
+\]
+is positive definite. Hence $L$ is strictly convex and the stationary point is the unique global minimizer.
+
+\exercise{2}{Waiting times and Bayesian estimation}
+
+\subsection*{1. Expected waiting time}
+
+\answer Put $r=1-q$. Differentiating the geometric series gives
+\[
+  \sum_{k=1}^{\infty}kr^{k-1}=\frac{1}{(1-r)^2},
+  \qquad
+  \sum_{k=0}^{\infty}kr^k=\frac{r}{(1-r)^2}.
+\]
+Therefore
+\[
+  \mathbb{E}[K\mid q]
+  =q\sum_{k=0}^{\infty}k(1-q)^k
+  =q\frac{1-q}{q^2}
+  =\boxed{\frac{1-q}{q}}.
+\]
+
+\subsection*{2. Requested probability}
+
+\answer
+\[
+  P(K=2\mid q=0.25)=0.25(0.75)^2
+  =\boxed{\frac{9}{64}=0.140625}.
+\]
+
+\subsection*{3. Likelihood and log-likelihood}
+
+\answer By independence,
+\[
+  L(q)=\prod_{n=1}^{N}q(1-q)^{K_n}
+  =q^N(1-q)^S.
+\]
+Thus
+\[
+  \boxed{\log L(q)=N\log q+S\log(1-q)}
+\]
+up to additive constants independent of $q$.
+
+\subsection*{4. Maximum-likelihood estimator}
+
+\answer
+\[
+  \frac{d}{dq}\log L(q)=\frac{N}{q}-\frac{S}{1-q}=0
+  \quad\Longrightarrow\quad
+  \boxed{\widehat q_{\mathrm{ML}}=\frac{N}{N+S}}.
+\]
+Because $S>0$, this value is in $(0,1)$. Also,
+\[
+  \frac{d^2}{dq^2}\log L(q)
+  =-\frac{N}{q^2}-\frac{S}{(1-q)^2}<0,
+\]
+so the log-likelihood is strictly concave and this is its unique maximum.
+
+\subsection*{5. Posterior distribution}
+
+\answer Multiplication of the likelihood and prior gives
+\begin{align*}
+  p(q\mid K_1,\ldots,K_N)
+  &\propto q^N(1-q)^S q^{a-1}(1-q)^{b-1}\\
+  &=q^{a+N-1}(1-q)^{b+S-1}.
+\end{align*}
+Therefore
+\[
+  \boxed{q\mid K_1,\ldots,K_N
+  \sim\operatorname{Beta}(a+N,b+S)}.
+\]
+
+\subsection*{6. MAP estimator}
+
+\answer The derivative of the posterior log-density is
+\[
+  \frac{a+N-1}{q}-\frac{b+S-1}{1-q}.
+\]
+Setting it to zero gives
+\[
+  \boxed{\widehat q_{\mathrm{MAP}}
+  =\frac{a+N-1}{a+b+N+S-2}}.
+\]
+Both posterior shape parameters exceed one, so the mode is unique and interior.
+
+\subsection*{7. Data statistic}
+
+\answer The statistic is
+\[
+  \boxed{S=\sum_{n=1}^{N}K_n}.
+\]
+For fixed $N$, both the likelihood and posterior depend on the observed values only through $S$. Thus $S$ is sufficient for $q$ by the factorization criterion.
+
+\exercise{3}{Estimating an unknown range}
+
+\subsection*{1. Likelihood}
+
+\answer Each observation has density
+\[
+  p(x_n\mid M)=\frac{1}{2M}\mathbf{1}\{|x_n|\leq M\}.
+\]
+Consequently,
+\[
+  \boxed{p(x_1,\ldots,x_N\mid M)
+  =(2M)^{-N}\mathbf{1}\{M\geq A\}},
+  \qquad M>0.
+\]
+
+\subsection*{2. Maximum-likelihood estimator}
+
+\answer The likelihood is zero for $M<A$ and equals $(2M)^{-N}$ for $M\geq A$. It is strictly decreasing over the feasible range, so
+\[
+  \boxed{\widehat M_{\mathrm{ML}}=A=\max_n|X_n|}.
+\]
+For the supplied observations,
+\[
+  A=\max(3.2,1.1,2.4,2.8,0.5)=\boxed{3.2}.
+\]
+
+\subsection*{3. Unbiased correction}
+
+\answer For $\widetilde M=cA$, unbiasedness requires
+\[
+  \mathbb{E}[\widetilde M]
+  =c\frac{NM}{N+1}=M.
+\]
+Thus
+\[
+  \boxed{\widetilde M=\frac{N+1}{N}A}.
+\]
+
+\subsection*{4. Variance}
+
+\answer First,
+\begin{align*}
+  \operatorname{Var}(A)
+  &=\frac{NM^2}{N+2}-\frac{N^2M^2}{(N+1)^2}\\
+  &=\frac{NM^2}{(N+2)(N+1)^2}.
+\end{align*}
+Therefore
+\[
+  \boxed{\operatorname{Var}(\widetilde M)
+  =\left(\frac{N+1}{N}\right)^2\operatorname{Var}(A)
+  =\frac{M^2}{N(N+2)}}.
+\]
+
+\exercise{4}{Multi-output regression with correlated noise}
+
+\subsection*{1. Dimensions}
+
+\answer
+\[
+  \boxed{\Phi W\in\mathbb{R}^{N\times k}},\qquad
+  \boxed{T-\Phi W\in\mathbb{R}^{N\times k}},\qquad
+  \boxed{(T-\Phi W)^\top(T-\Phi W)\in\mathbb{R}^{k\times k}}.
+\]
+
+\subsection*{2. Log-likelihood}
+
+\answer Let $E(W)=T-\Phi W$. Since
+\[
+  |\sigma^2C|=(\sigma^2)^k|C|,
+\]
+independence gives
+\begin{align*}
+  \log p(T\mid W,\sigma^2)
+  ={}&-\frac{Nk}{2}\log(2\pi)
+  -\frac{Nk}{2}\log\sigma^2
+  -\frac{N}{2}\log|C|\\
+  &-\frac{1}{2\sigma^2}
+  \operatorname{tr}\left(C^{-1}E(W)^\top E(W)\right).
+\end{align*}
+
+\Needspace{16\baselineskip}
+\subsection*{3. Maximum-likelihood estimator of $W$}
+
+\answer For fixed $\sigma^2$, minimize
+\[
+  Q(W)=\operatorname{tr}(C^{-1}E^\top E).
+\]
+Using $dE=-\Phi\,dW$ and symmetry of $C^{-1}$,
+\[
+  dQ=-2\operatorname{tr}(C^{-1}E^\top\Phi\,dW),
+\]
+so stationarity gives
+\[
+  \Phi^\top(T-\Phi W)C^{-1}=0.
+\]
+Since $C$ is invertible,
+\[
+  \Phi^\top\Phi W=\Phi^\top T,
+  \qquad
+  \boxed{W_{\mathrm{ML}}
+  =(\Phi^\top\Phi)^{-1}\Phi^\top T}.
+\]
+The positive scalar $1/\sigma^2$ cancels, and multiplication by the invertible $C^{-1}$ does not change the normal equations. Hence the estimate depends on neither $C$ nor $\sigma^2$.
+
+\subsection*{4. Maximum-likelihood estimator of $\sigma^2$}
+
+\answer Let $E=T-\Phi W_{\mathrm{ML}}$ and
+\[
+  Q=\operatorname{tr}(C^{-1}E^\top E)>0.
+\]
+For $z=\sigma^2$, the relevant log-likelihood is
+\[
+  -\frac{Nk}{2}\log z-\frac{Q}{2z}.
+\]
+Its derivative is $-Nk/(2z)+Q/(2z^2)$. Therefore
+\[
+  \boxed{\widehat\sigma_{\mathrm{ML}}^2
+  =\frac{\operatorname{tr}(C^{-1}E^\top E)}{Nk}}.
+\]
+At this value the second derivative is $-Nk/(2z^2)<0$. The nonzero-residual assumption ensures a positive estimate and an attained maximum.
+
+\subsection*{5. Residual orthogonality}
+
+\answer The normal equations imply
+\[
+  \boxed{\Phi^\top E
+  =\Phi^\top(T-\Phi W_{\mathrm{ML}})=0}.
+\]
+Thus every residual column is orthogonal to every column of $\Phi$. For each output, the fitted vector is the Euclidean orthogonal projection of the target onto the column space of $\Phi$.
+
+\exercise{5}{Information from one Bayesian observation}
+
+Write
+\[
+  D=\beta^{-1}+\phi^\top\Sigma_N\phi>0.
+\]
+
+\subsection*{1. Covariance update}
+
+\answer Apply Sherman--Morrison to
+\[
+  \Sigma_{N+1}=(\Sigma_N^{-1}+\beta\phi\phi^\top)^{-1}.
+\]
+This gives
+\begin{align*}
+  \Sigma_{N+1}
+  &=\Sigma_N-
+  \frac{\beta\Sigma_N\phi\phi^\top\Sigma_N}
+  {1+\beta\phi^\top\Sigma_N\phi}\\
+  &=\boxed{\Sigma_N-
+  \frac{\Sigma_N\phi\phi^\top\Sigma_N}
+  {\beta^{-1}+\phi^\top\Sigma_N\phi}}.
+\end{align*}
+
+\subsection*{2. Innovation form of the mean}
+
+\answer Start from
+\[
+  \mu_{N+1}=\Sigma_{N+1}
+  (\Sigma_N^{-1}\mu_N+\beta\phi t).
+\]
+The covariance update implies
+\[
+  \Sigma_{N+1}\Sigma_N^{-1}
+  =I-\frac{\Sigma_N\phi\phi^\top}{D},
+  \qquad
+  \Sigma_{N+1}\beta\phi=\frac{\Sigma_N\phi}{D}.
+\]
+Hence
+\[
+  \boxed{\mu_{N+1}=\mu_N+K(t-\phi^\top\mu_N)},
+  \qquad
+  \boxed{K=\frac{\Sigma_N\phi}{D}}.
+\]
+The vector $\Sigma_N\phi$ selects the parameter direction correlated with the measured quantity $\phi^\top w$. The scalar innovation $t-\phi^\top\mu_N$ gives the signed prediction error and controls the update magnitude.
+
+\subsection*{3. Posterior predictive distribution}
+
+\answer Write $t=\phi^\top w+\varepsilon$, where $w\mid\mathcal D_N\sim\mathcal N(\mu_N,\Sigma_N)$ and $\varepsilon\sim\mathcal N(0,\beta^{-1})$ are independent. Therefore
+\[
+  \boxed{p(t\mid\phi,\mathcal D_N)
+  =\mathcal N\left(t\,\middle|\,
+  \phi^\top\mu_N,
+  \beta^{-1}+\phi^\top\Sigma_N\phi\right)}.
+\]
+The variance consists of observation-noise uncertainty $\beta^{-1}$ and posterior parameter uncertainty $\phi^\top\Sigma_N\phi$.
+
+\subsection*{4. Directional uncertainty reduction}
+
+\answer From the covariance update,
+\begin{align*}
+  a^\top(\Sigma_N-\Sigma_{N+1})a
+  &=\frac{a^\top\Sigma_N\phi\phi^\top\Sigma_Na}{D}\\
+  &=\boxed{\frac{(a^\top\Sigma_N\phi)^2}
+  {\beta^{-1}+\phi^\top\Sigma_N\phi}}\geq 0.
+\end{align*}
+It is zero exactly when $a^\top\Sigma_N\phi=0$. This quantity is the posterior covariance between $a^\top w$ and $\phi^\top w$. Thus the observation reduces uncertainty only in parameter directions correlated with the measured quantity; the rank-one reduction acts along $\Sigma_N\phi$.
+
+\vfill
+\begin{center}
+  \textbf{End of Mock Exam A Answer Key}
+\end{center}
+
+\end{document}

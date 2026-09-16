@@ -1,0 +1,226 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=22mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{needspace}
+
+\definecolor{examblue}{HTML}{17365D}
+\definecolor{rulegray}{HTML}{D6DCE4}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textsc{Machine Learning 1}}
+\rhead{\textsc{Mock Exam B}}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}
+  {\Large\bfseries\color{examblue}}
+  {}{0pt}{}
+  [\vspace{0.15em}\color{rulegray}\titlerule]
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{examblue}}
+  {}{0pt}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.1em,topsep=0.25em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.65em,topsep=0.35em}
+\allowdisplaybreaks
+
+\newcommand{\points}[1]{\unskip\nobreak\hfill\mbox{\textbf{[#1 points]}}}
+\newcommand{\exercise}[3]{%
+  \Needspace{8\baselineskip}%
+  \par\addvspace{1.1em}%
+  \noindent
+  \begin{minipage}[t]{0.73\textwidth}
+    \vspace{0pt}\raggedright\large\bfseries\color{examblue}
+    Exercise #1: #2
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.24\textwidth}
+    \vspace{0pt}\raggedleft\small\color{examblue}#3
+  \end{minipage}%
+  \par\nobreak\vspace{0.2em}%
+  {\color{rulegray}\hrule height 0.5pt}%
+  \vspace{0.55em}%
+}
+
+\begin{document}
+
+\begin{center}
+  {\Huge\bfseries\color{examblue} Machine Learning 1}\par
+  \vspace{0.35em}
+  {\LARGE\bfseries Mock Exam B}\par
+  \vspace{0.9em}
+  {\large Duration: 2 hours \qquad Total: 100 points}
+\end{center}
+
+\vspace{0.8em}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}ll}
+  \textbf{Name:} \rule{7cm}{0.4pt} & \textbf{Student ID:} \rule{4cm}{0.4pt}
+\end{tabular*}
+
+\vspace{1em}
+\fcolorbox{rulegray}{white}{%
+  \begin{minipage}{0.94\textwidth}
+    \textbf{Instructions}
+    \begin{itemize}
+      \item Show all important intermediate steps. Answers without justification can receive reduced credit.
+      \item State any additional assumptions that you use.
+      \item Give matrix and vector dimensions where the question asks for them.
+      \item This course uses numerator layout: if $f:\mathbb{R}^m\to\mathbb{R}^n$, then its Jacobian has shape $n\times m$.
+      \item Unless a question states otherwise, vectors are column vectors.
+      \item The suggested working times total 110 minutes. Reserve about 10 minutes to check your answers.
+    \end{itemize}
+  \end{minipage}%
+}
+
+\exercise{1}{Normalization and a nonsmooth loss}{20 points, 20 minutes}
+
+\subsection*{1.1 Vector normalization}
+
+Define $h:\mathbb{R}^d\setminus\{0\}\to\mathbb{R}^d$ by
+\[
+  h(x)=\frac{x}{\lVert x\rVert_2}.
+\]
+
+\begin{enumerate}
+  \item Derive $\partial h_i/\partial x_j$ using index notation. \points{5}
+  \item Write the full Jacobian $J_h(x)$ in matrix notation and state its dimensions. \points{4}
+  \item Show that $J_h(x)x=0$. Explain why this agrees with the behavior of $h(cx)$ for $c>0$. \points{3}
+\end{enumerate}
+
+\subsection*{1.2 Absolute-error regression}
+
+Let $a,w\in\mathbb{R}^p$, with $a\neq 0$, let $y\in\mathbb{R}$, and let $\lambda>0$. Define
+\[
+  f(w)=|a^\top w-y|+\frac{\lambda}{2}w^\top w.
+\]
+
+\begin{enumerate}[resume]
+  \item When $a^\top w-y\neq 0$, derive the $1\times p$ derivative of $f(w)$ using the course's numerator-layout convention. \points{4}
+  \item State why the derivative does not exist when $a^\top w-y=0$. Give one valid subgradient at such a point, and write one subgradient-descent update with step size $\eta>0$. \points{4}
+\end{enumerate}
+
+\exercise{2}{A transformed waiting-time model}{24 points, 25 minutes}
+
+Let $X$ have density
+\[
+  p(x\mid\lambda)=
+  \begin{cases}
+    r\lambda x^{r-1}\exp(-\lambda x^r), & x>0,\\
+    0, & x\leq 0,
+  \end{cases}
+\]
+where $r>0$ is known and $\lambda>0$ is unknown.
+
+\begin{enumerate}
+  \item Show that this is a valid probability density. \points{3}
+  \item Define $Y=X^r$. Derive the density of $Y$, identify its distribution, and hence find $\mathbb{E}[X^r\mid\lambda]$. \points{4}
+  \item Derive $P(X>c\mid\lambda)$ for $c\geq 0$. Evaluate it for $r=2$, $\lambda=0.25$, and $c=2$. \points{3}
+\end{enumerate}
+
+Now let $X_1,\ldots,X_N$ be independent observations and define $S=\sum_{n=1}^{N}X_n^r$. Assume $S>0$.
+
+\begin{enumerate}[resume]
+  \item Derive the maximum-likelihood estimator of $\lambda$. Verify that it maximizes the likelihood. \points{4}
+\end{enumerate}
+
+Use a Gamma prior with shape $a$ and rate $b$:
+\[
+  p(\lambda)\propto\lambda^{a-1}\exp(-b\lambda),
+\]
+where $a>0$ and $b>0$.
+
+\begin{enumerate}[resume]
+  \item Derive the posterior distribution and identify its parameters. \points{4}
+  \item Derive the MAP estimator. \points{3}
+  \item Give the posterior mean and compare it with the MAP estimator. What happens to their difference as $N$ increases while $S/N$ remains fixed and positive? \points{3}
+\end{enumerate}
+
+\exercise{3}{Bias, variance, and shrinkage}{15 points, 16 minutes}
+
+Let $X_1,\ldots,X_N$ be independent random variables with
+\[
+  \mathbb{E}[X_n]=\mu,
+  \qquad
+  \operatorname{Var}(X_n)=\sigma^2,
+\]
+where the known value $\sigma^2$ is strictly positive. Let $m_0$ be a fixed reference value and define, for $0\leq c\leq 1$,
+\[
+  \widetilde{\mu}_c=c\overline{X}+(1-c)m_0.
+\]
+
+\begin{enumerate}
+  \item Derive the bias of $\widetilde{\mu}_c$ as an estimator of $\mu$. State when it is unbiased. \points{3}
+  \item Derive its variance. \points{3}
+  \item Derive its mean squared error. You may use $\operatorname{MSE}=\operatorname{variance}+\operatorname{bias}^2$. \points{3}
+  \item For fixed $\mu$, find the value of $c\in[0,1]$ that minimizes the mean squared error. \points{4}
+  \item Explain why the minimizing value from part 4 is called an oracle choice. Describe its limiting behavior as $N\to\infty$, distinguishing $\mu=m_0$ from $\mu\neq m_0$. \points{2}
+\end{enumerate}
+
+\exercise{4}{Multi-output MAP regression}{22 points, 24 minutes}
+
+Let $T\in\mathbb{R}^{N\times k}$, $\Phi\in\mathbb{R}^{N\times m}$, and $W\in\mathbb{R}^{m\times k}$. Consider the likelihood
+\[
+  p(T\mid W)\propto
+  \exp\left(-\frac{\beta}{2}\lVert T-\Phi W\rVert_F^2\right),
+\]
+where $\beta>0$. Let $M_0\in\mathbb{R}^{m\times k}$ and let $R\in\mathbb{R}^{m\times m}$ be symmetric positive definite. Use the prior
+\[
+  p(W)\propto
+  \exp\left(-\frac{\alpha}{2}
+  \operatorname{tr}\bigl((W-M_0)^\top R(W-M_0)\bigr)\right),
+\]
+where $\alpha>0$.
+
+\begin{enumerate}
+  \item Write the negative log-posterior, up to additive constants independent of $W$. \points{4}
+  \item Derive the MAP estimator of $W$. Define $\lambda=\alpha/\beta$ and give your final answer in terms of $\lambda$. \points{7}
+  \item Show that the MAP estimator is unique, even if $\Phi$ does not have full column rank. \points{3}
+  \item Describe the limits of $W_{\mathrm{MAP}}$ as $\lambda\to 0$ and $\lambda\to\infty$. State any rank assumption needed for the first limit. \points{4}
+  \item As $\lambda$ increases, describe the changes in $\lVert T-\Phi W_{\mathrm{MAP}}\rVert_F^2$ and in
+  \[
+    \operatorname{tr}\bigl((W_{\mathrm{MAP}}-M_0)^\top R(W_{\mathrm{MAP}}-M_0)\bigr).
+  \]
+  Under the usual correctly specified regression assumptions, explain the general effect of stronger shrinkage on variance and bias, including the special case in which $M_0$ equals the true coefficient matrix. \points{4}
+\end{enumerate}
+
+\exercise{5}{Two sequential Bayesian updates}{19 points, 25 minutes}
+
+The current posterior in a Bayesian linear regression model is
+\[
+  p(w\mid\mathcal{D}_N)=\mathcal{N}(w\mid\mu_N,\Sigma_N).
+\]
+Assume that $\Sigma_N$ is symmetric positive definite. Two new observations are
+\[
+  (\phi_a,t_a,\beta_a)
+  \qquad\text{and}\qquad
+  (\phi_b,t_b,\beta_b),
+\]
+where each $\phi$ is in $\mathbb{R}^m$, each target is scalar, and each positive $\beta$ is the precision of that observation's Gaussian noise. Define the current natural parameter
+\[
+  \eta_N=\Sigma_N^{-1}\mu_N.
+\]
+
+\begin{enumerate}
+  \item Derive the posterior precision after incorporating both observations. \points{5}
+  \item Derive the final natural parameter and use it to give the final posterior mean. \points{4}
+  \item Use your answers to show that the final posterior does not depend on the order in which the two observations are processed. State the probabilistic assumption that makes this result valid. \points{4}
+  \item Suppose $\phi_b=\phi_a$. Show that the two observations have the same effect on the posterior as one observation with precision $\beta_a+\beta_b$. Derive the equivalent target value. \points{4}
+  \item If $\phi_b=c\phi_a$ for a nonzero scalar $c$, does the second observation provide information in a new parameter-space direction? Explain briefly. \points{2}
+\end{enumerate}
+
+\vfill
+\begin{center}
+  \textbf{End of Mock Exam B}
+\end{center}
+
+\end{document}

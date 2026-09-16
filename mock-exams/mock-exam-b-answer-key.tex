@@ -1,0 +1,453 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=21mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{needspace}
+
+\definecolor{examblue}{HTML}{17365D}
+\definecolor{answergreen}{HTML}{245C3A}
+\definecolor{rulegray}{HTML}{D6DCE4}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textsc{Machine Learning 1}}
+\rhead{\textsc{Mock Exam B -- Answer Key}}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}
+  {\Large\bfseries\color{examblue}}
+  {}{0pt}{}
+  [\vspace{0.15em}\color{rulegray}\titlerule]
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{answergreen}}
+  {}{0pt}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em}
+\setlist[enumerate]{leftmargin=1.8em,itemsep=0.8em,topsep=0.35em}
+\allowdisplaybreaks
+
+\newcommand{\exercise}[2]{%
+  \Needspace{8\baselineskip}%
+  \par\addvspace{1.1em}%
+  {\Large\bfseries\color{examblue}Exercise #1: #2\par}%
+  \nobreak\vspace{0.2em}%
+  {\color{rulegray}\hrule height 0.5pt}%
+  \vspace{0.55em}%
+}
+\newcommand{\answer}{\textbf{Answer.}\ }
+
+\begin{document}
+
+\begin{center}
+  {\Huge\bfseries\color{examblue} Machine Learning 1}\par
+  \vspace{0.35em}
+  {\LARGE\bfseries Mock Exam B -- Answer Key}\par
+  \vspace{0.7em}
+  {\large Worked solutions for all 100 points}
+\end{center}
+
+\vspace{0.8em}
+\fcolorbox{rulegray}{white}{%
+  \begin{minipage}{0.94\textwidth}
+    Equivalent algebraic forms are valid. The derivations below use numerator-layout derivatives where a scalar derivative is a row vector.
+  \end{minipage}%
+}
+
+\exercise{1}{Normalization and a nonsmooth loss}
+
+\subsection*{1. Component derivative}
+
+\answer Let $\rho=\lVert x\rVert_2>0$. Since
+\[
+  h_i(x)=x_i\rho^{-1},
+  \qquad
+  \frac{\partial\rho}{\partial x_j}=\frac{x_j}{\rho},
+\]
+the product rule gives
+\[
+  \boxed{\frac{\partial h_i}{\partial x_j}
+  =\frac{\delta_{ij}}{\rho}-\frac{x_ix_j}{\rho^3}}.
+\]
+
+\subsection*{2. Full Jacobian}
+
+\answer With $u=x/\lVert x\rVert_2$,
+\[
+  \boxed{J_h(x)=\frac{I_d}{\lVert x\rVert_2}
+  -\frac{xx^\top}{\lVert x\rVert_2^3}
+  =\frac{1}{\lVert x\rVert_2}(I_d-uu^\top)}
+  \in\mathbb{R}^{d\times d}.
+\]
+
+\subsection*{3. Radial direction}
+
+\answer
+\[
+  J_h(x)x
+  =\frac{x}{\rho}-\frac{x(x^\top x)}{\rho^3}
+  =\frac{x}{\rho}-\frac{x\rho^2}{\rho^3}=0.
+\]
+For $c>0$,
+\[
+  h(cx)=\frac{cx}{\lVert cx\rVert_2}
+  =\frac{cx}{c\lVert x\rVert_2}=h(x).
+\]
+Thus $h$ is constant along each positive radial ray, so its directional derivative in the radial direction is zero.
+
+\subsection*{4. Absolute-error derivative}
+
+\answer Let $z=a^\top w-y$. For $z\neq 0$,
+\[
+  \frac{\partial |z|}{\partial w}=\operatorname{sign}(z)a^\top,
+  \qquad
+  \frac{\partial}{\partial w}\frac{\lambda}{2}w^\top w
+  =\lambda w^\top.
+\]
+Therefore
+\[
+  \boxed{\frac{\partial f}{\partial w}
+  =\operatorname{sign}(a^\top w-y)a^\top+\lambda w^\top}
+  \in\mathbb{R}^{1\times p}.
+\]
+
+\subsection*{5. Nondifferentiability and subgradient}
+
+\answer At $a^\top w-y=0$, the absolute-value term has different one-sided slopes in direction $a$; the smooth quadratic does not remove this kink. The row-subdifferential is
+\[
+  \partial f(w)=
+  \{sa^\top+\lambda w^\top:s\in[-1,1]\}.
+\]
+For any chosen $s\in[-1,1]$, one valid column-form update is
+\[
+  \boxed{w^{+}=w-\eta(sa+\lambda w)}.
+\]
+For example, $s=0$ gives $w^{+}=(1-\eta\lambda)w$ at the kink.
+
+\exercise{2}{A transformed waiting-time model}
+
+\subsection*{1. Valid density}
+
+\answer The density is nonnegative. With $u=\lambda x^r$ and $du=r\lambda x^{r-1}dx$,
+\[
+  \int_{-\infty}^{\infty}p(x\mid\lambda)\,dx
+  =\int_0^\infty r\lambda x^{r-1}e^{-\lambda x^r}\,dx
+  =\int_0^\infty e^{-u}\,du=1.
+\]
+Thus it is a valid density for every $r,\lambda>0$.
+
+\subsection*{2. Distribution of $Y=X^r$}
+
+\answer For $y>0$, $x=y^{1/r}$ and
+\[
+  \left|\frac{dx}{dy}\right|
+  =\frac{1}{r}y^{1/r-1}.
+\]
+Hence
+\begin{align*}
+  p_Y(y\mid\lambda)
+  &=r\lambda(y^{1/r})^{r-1}e^{-\lambda y}
+    \frac{1}{r}y^{1/r-1}\\
+  &=\lambda e^{-\lambda y},\qquad y>0.
+\end{align*}
+Therefore
+\[
+  \boxed{Y=X^r\mid\lambda\sim\operatorname{Exponential}(\lambda)},
+  \qquad
+  \boxed{\mathbb{E}[X^r\mid\lambda]=\frac{1}{\lambda}}.
+\]
+
+\subsection*{3. Survival probability}
+
+\answer
+\[
+  P(X>c\mid\lambda)
+  =P(X^r>c^r\mid\lambda)
+  =\boxed{e^{-\lambda c^r}}.
+\]
+For the supplied values,
+\[
+  P(X>2\mid\lambda=0.25)=e^{-0.25\cdot 2^2}
+  =\boxed{e^{-1}}.
+\]
+
+\subsection*{4. Maximum-likelihood estimator}
+
+\answer Terms independent of $\lambda$ can be collected into a constant:
+\[
+  L(\lambda)\propto\lambda^Ne^{-\lambda S},
+  \qquad
+  \log L(\lambda)=N\log\lambda-\lambda S+\text{constant}.
+\]
+Thus
+\[
+  \frac{d}{d\lambda}\log L=\frac{N}{\lambda}-S=0
+  \quad\Longrightarrow\quad
+  \boxed{\widehat\lambda_{\mathrm{ML}}=\frac{N}{S}}.
+\]
+The second derivative $-N/\lambda^2$ is negative. Since $S>0$, the log-likelihood also tends to $-\infty$ at both boundaries, so this is the unique global maximum.
+
+\subsection*{5. Posterior distribution}
+
+\answer
+\begin{align*}
+  p(\lambda\mid x_1,\ldots,x_N)
+  &\propto\lambda^Ne^{-S\lambda}
+    \lambda^{a-1}e^{-b\lambda}\\
+  &=\lambda^{a+N-1}e^{-(b+S)\lambda}.
+\end{align*}
+Therefore, in shape-rate form,
+\[
+  \boxed{\lambda\mid x_1,\ldots,x_N
+  \sim\operatorname{Gamma}(a+N,b+S)}.
+\]
+
+\subsection*{6. MAP estimator}
+
+\answer The derivative of the posterior log-density is
+\[
+  \frac{a+N-1}{\lambda}-(b+S).
+\]
+Since $N\geq1$ and $a>0$, the posterior shape is greater than one. Hence the unique interior mode is
+\[
+  \boxed{\widehat\lambda_{\mathrm{MAP}}
+  =\frac{a+N-1}{b+S}}.
+\]
+
+\subsection*{7. Posterior mean and asymptotics}
+
+\answer
+\[
+  \mathbb{E}[\lambda\mid\text{data}]
+  =\frac{a+N}{b+S},
+  \qquad
+  \mathbb{E}[\lambda\mid\text{data}]
+  -\widehat\lambda_{\mathrm{MAP}}
+  =\boxed{\frac{1}{b+S}}.
+\]
+If $S/N\to s>0$, the difference is $1/(b+Ns)\to0$ at rate $O(N^{-1})$. Both summaries converge to $1/s$.
+
+\exercise{3}{Bias, variance, and shrinkage}
+
+Write $A=\sigma^2/N>0$ and $D=(\mu-m_0)^2\geq0$.
+
+\subsection*{1. Bias}
+
+\answer
+\[
+  \mathbb{E}[\widetilde\mu_c]
+  =c\mu+(1-c)m_0,
+\]
+so
+\[
+  \boxed{\operatorname{Bias}(\widetilde\mu_c)
+  =(1-c)(m_0-\mu)}.
+\]
+The estimator is unbiased exactly when $c=1$ or $m_0=\mu$.
+
+\subsection*{2. Variance}
+
+\answer Independence gives $\operatorname{Var}(\overline X)=\sigma^2/N$. Since $m_0$ is fixed,
+\[
+  \boxed{\operatorname{Var}(\widetilde\mu_c)
+  =\frac{c^2\sigma^2}{N}}.
+\]
+
+\subsection*{3. Mean squared error}
+
+\answer
+\[
+  \boxed{\operatorname{MSE}(c)
+  =\frac{c^2\sigma^2}{N}
+  +(1-c)^2(m_0-\mu)^2
+  =Ac^2+D(1-c)^2}.
+\]
+
+\subsection*{4. MSE-minimizing value}
+
+\answer Differentiation gives
+\[
+  \frac{d}{dc}\operatorname{MSE}(c)
+  =2(A+D)c-2D.
+\]
+Therefore
+\[
+  \boxed{c^*=\frac{D}{A+D}
+  =\frac{(\mu-m_0)^2}
+  {(\mu-m_0)^2+\sigma^2/N}}.
+\]
+This lies in $[0,1)$, and the second derivative $2(A+D)>0$, so it is the unique minimizer.
+
+\subsection*{5. Oracle property and limit}
+
+\answer This is an oracle choice because it depends on the unknown $\mu$. If $\mu\neq m_0$, then $D>0$ and $c^*\to1$ as $N\to\infty$, so the estimator increasingly relies on the precise sample mean. If $\mu=m_0$, then $D=0$ and $c^*=0$ for every $N$; the fixed reference is exactly correct and has zero MSE.
+
+\exercise{4}{Multi-output MAP regression}
+
+Define
+\[
+  D(W)=\lVert T-\Phi W\rVert_F^2,
+  \qquad
+  P(W)=\operatorname{tr}((W-M_0)^\top R(W-M_0)).
+\]
+
+\subsection*{1. Negative log-posterior}
+
+\answer Up to constants independent of $W$,
+\[
+  \boxed{-\log p(W\mid T)
+  =\frac{\beta}{2}D(W)+\frac{\alpha}{2}P(W)+\text{constant}}.
+\]
+
+\subsection*{2. MAP estimator}
+
+\answer Differentiation with respect to $W$ gives the stationarity equation
+\[
+  \beta\Phi^\top(\Phi W-T)+\alpha R(W-M_0)=0.
+\]
+With $\lambda=\alpha/\beta$,
+\[
+  (\Phi^\top\Phi+\lambda R)W
+  =\Phi^\top T+\lambda RM_0.
+\]
+Therefore
+\[
+  \boxed{W_{\mathrm{MAP}}
+  =(\Phi^\top\Phi+\lambda R)^{-1}
+  (\Phi^\top T+\lambda RM_0)}.
+\]
+An equivalent form is
+\[
+  W_{\mathrm{MAP}}=M_0+
+  (\Phi^\top\Phi+\lambda R)^{-1}
+  \Phi^\top(T-\Phi M_0).
+\]
+
+\subsection*{3. Uniqueness}
+
+\answer For every nonzero $v\in\mathbb{R}^m$,
+\[
+  v^\top(\Phi^\top\Phi+\lambda R)v
+  =\lVert\Phi v\rVert_2^2+\lambda v^\top Rv>0.
+\]
+Thus the coefficient matrix is positive definite and invertible, regardless of the rank of $\Phi$. The objective is strictly convex, so the MAP estimate is unique.
+
+\subsection*{4. Limits}
+
+\answer If $\Phi$ has full column rank,
+\[
+  \boxed{\lim_{\lambda\to0}W_{\mathrm{MAP}}
+  =(\Phi^\top\Phi)^{-1}\Phi^\top T},
+\]
+the ordinary least-squares estimate. Using the equivalent form above,
+\[
+  \boxed{\lim_{\lambda\to\infty}W_{\mathrm{MAP}}=M_0},
+\]
+because the correction away from $M_0$ is $O(\lambda^{-1})$.
+
+If $\Phi$ is rank deficient, the first displayed inverse does not exist; the small-$\lambda$ limit selects, among least-squares solutions, the one closest to $M_0$ in the $R$-weighted norm.
+
+\subsection*{5. Regularization path and bias--variance tradeoff}
+
+\answer Let $W_i$ minimize $D(W)+\lambda_iP(W)$ for $0<\lambda_1<\lambda_2$, and write $D_i=D(W_i)$ and $P_i=P(W_i)$. Optimality gives
+\begin{align*}
+  D_1+\lambda_1P_1&\leq D_2+\lambda_1P_2,\\
+  D_2+\lambda_2P_2&\leq D_1+\lambda_2P_1.
+\end{align*}
+Combining these inequalities shows
+\[
+  \boxed{P_2\leq P_1},
+  \qquad
+  \boxed{D_2\geq D_1}.
+\]
+Thus stronger regularization moves the estimate toward $M_0$ and cannot improve the training residual; the inequalities need not be strict.
+
+Under a correctly specified fixed-design model $T=\Phi W_*+E$ with mean-zero isotropic noise, put $A_\lambda=\Phi^\top\Phi+\lambda R$. Then
+\[
+  \mathbb{E}[W_{\mathrm{MAP}}]-W_*
+  =\lambda A_\lambda^{-1}R(M_0-W_*).
+\]
+Stronger shrinkage generally reduces variance but increases bias toward $M_0$. If $M_0=W_*$, the bias is zero for every $\lambda$, while the variance still decreases.
+
+\exercise{5}{Two sequential Bayesian updates}
+
+Let $\Lambda_N=\Sigma_N^{-1}$.
+
+\subsection*{1. Final precision}
+
+\answer Each Gaussian observation adds a rank-one precision term. Hence
+\[
+  \boxed{\Lambda_{\mathrm{final}}
+  =\Lambda_N+\beta_a\phi_a\phi_a^\top
+  +\beta_b\phi_b\phi_b^\top},
+\]
+and $\Sigma_{\mathrm{final}}=\Lambda_{\mathrm{final}}^{-1}$.
+
+\subsection*{2. Natural parameter and posterior mean}
+
+\answer The linear terms in $w$ give
+\[
+  \boxed{\eta_{\mathrm{final}}
+  =\eta_N+\beta_a\phi_at_a+\beta_b\phi_bt_b}.
+\]
+Therefore
+\[
+  \boxed{\mu_{\mathrm{final}}
+  =\Sigma_{\mathrm{final}}\eta_{\mathrm{final}}}
+\]
+or, explicitly,
+\[
+  \mu_{\mathrm{final}}
+  =(\Sigma_N^{-1}+\beta_a\phi_a\phi_a^\top
+  +\beta_b\phi_b\phi_b^\top)^{-1}
+  (\Sigma_N^{-1}\mu_N+\beta_a\phi_at_a+\beta_b\phi_bt_b).
+\]
+
+\subsection*{3. Order independence}
+
+\answer Processing either observation simply adds its precision and natural-parameter terms. Matrix and vector addition are commutative, so both processing orders produce the same final Gaussian posterior. This requires conditional independence:
+\[
+  p(t_a,t_b\mid w,\phi_a,\phi_b)
+  =p(t_a\mid w,\phi_a)p(t_b\mid w,\phi_b).
+\]
+Equivalently, the two observation noises must be independent conditional on $w$ and the features.
+
+\subsection*{4. Equivalent observation for equal features}
+
+\answer If $\phi_b=\phi_a=\phi$, then the increments are
+\[
+  \Delta\Lambda=(\beta_a+\beta_b)\phi\phi^\top,
+  \qquad
+  \Delta\eta=\phi(\beta_at_a+\beta_bt_b).
+\]
+Define
+\[
+  \boxed{\beta_*=\beta_a+\beta_b},
+  \qquad
+  \boxed{t_*=\frac{\beta_at_a+\beta_bt_b}{\beta_a+\beta_b}}.
+\]
+Then $\Delta\Lambda=\beta_*\phi\phi^\top$ and $\Delta\eta=\beta_*\phi t_*$, exactly the update from one observation $(\phi,t_*,\beta_*)$.
+
+\subsection*{5. Collinear features}
+
+\answer If $\phi_b=c\phi_a$, then
+\[
+  \beta_b\phi_b\phi_b^\top
+  =\beta_bc^2\phi_a\phi_a^\top.
+\]
+Thus the second observation adds precision only in $\operatorname{span}(\phi_a)$. It provides more information in the same direction, but no new parameter-space direction. If $\phi_a=0$, neither observation gives information about $w$.
+
+\vfill
+\begin{center}
+  \textbf{End of Mock Exam B Answer Key}
+\end{center}
+
+\end{document}

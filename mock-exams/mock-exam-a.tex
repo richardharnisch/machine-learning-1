@@ -1,0 +1,245 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=22mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{needspace}
+
+\definecolor{examblue}{HTML}{17365D}
+\definecolor{rulegray}{HTML}{D6DCE4}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textsc{Machine Learning 1}}
+\rhead{\textsc{Mock Exam A}}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}
+  {\Large\bfseries\color{examblue}}
+  {}{0pt}{}
+  [\vspace{0.15em}\color{rulegray}\titlerule]
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{examblue}}
+  {}{0pt}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.1em,topsep=0.25em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.65em,topsep=0.35em}
+\allowdisplaybreaks
+
+\newcommand{\points}[1]{\unskip\nobreak\hfill\mbox{\textbf{[#1 points]}}}
+\newcommand{\exercise}[3]{%
+  \Needspace{8\baselineskip}%
+  \par\addvspace{1.1em}%
+  \noindent
+  \begin{minipage}[t]{0.73\textwidth}
+    \vspace{0pt}\raggedright\large\bfseries\color{examblue}
+    Exercise #1: #2
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.24\textwidth}
+    \vspace{0pt}\raggedleft\small\color{examblue}#3
+  \end{minipage}%
+  \par\nobreak\vspace{0.2em}%
+  {\color{rulegray}\hrule height 0.5pt}%
+  \vspace{0.55em}%
+}
+
+\begin{document}
+
+\begin{center}
+  {\Huge\bfseries\color{examblue} Machine Learning 1}\par
+  \vspace{0.35em}
+  {\LARGE\bfseries Mock Exam A}\par
+  \vspace{0.9em}
+  {\large Duration: 2 hours \qquad Total: 100 points}
+\end{center}
+
+\vspace{0.8em}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}ll}
+  \textbf{Name:} \rule{7cm}{0.4pt} & \textbf{Student ID:} \rule{4cm}{0.4pt}
+\end{tabular*}
+
+\vspace{1em}
+\fcolorbox{rulegray}{white}{%
+  \begin{minipage}{0.94\textwidth}
+    \textbf{Instructions}
+    \begin{itemize}
+      \item Show all important intermediate steps. Answers without justification can receive reduced credit.
+      \item State any additional assumptions that you use.
+      \item Give matrix and vector dimensions where the question asks for them.
+      \item This course uses numerator layout: if $f:\mathbb{R}^m\to\mathbb{R}^n$, then its Jacobian has shape $n\times m$.
+      \item Unless a question states otherwise, vectors are column vectors.
+      \item The suggested working times total 110 minutes. Reserve about 10 minutes to check your answers.
+    \end{itemize}
+  \end{minipage}%
+}
+
+\exercise{1}{Multivariate derivatives and regularization}{20 points, 18 minutes}
+
+\subsection*{1.1 Temperature-scaled log-softmax}
+
+Let $x\in\mathbb{R}^d$ and let $\tau>0$. Define $s:\mathbb{R}^d\to\mathbb{R}^d$ and $\ell:\mathbb{R}^d\to\mathbb{R}^d$ by
+\begin{align*}
+  s_i(x) &= \frac{\exp(x_i/\tau)}{\sum_{k=1}^{d}\exp(x_k/\tau)},
+  &\ell_i(x) &= \log s_i(x).
+\end{align*}
+
+\begin{enumerate}
+  \item Derive $\partial \ell_i/\partial x_j$ using index notation. Express the answer using $s_j$, $\tau$, and the Kronecker delta $\delta_{ij}$. \points{5}
+  \item Write the full Jacobian $J_{\ell}(x)$ in matrix notation and state its dimensions. \points{4}
+  \item Show that $J_{\ell}(x)\mathbf{1}=0$, where $\mathbf{1}$ is the all-ones vector. Explain this result using a transformation of $x$ that leaves $\ell(x)$ unchanged. \points{4}
+\end{enumerate}
+
+\subsection*{1.2 Generalized ridge regression}
+
+Let $X\in\mathbb{R}^{n\times p}$, $y\in\mathbb{R}^n$, $\theta\in\mathbb{R}^p$, and $\gamma>0$. Let $R\in\mathbb{R}^{p\times p}$ be symmetric positive definite. Consider
+\[
+  L(\theta)=\frac{1}{n}\lVert X\theta-y\rVert_2^2+\gamma\theta^\top R\theta.
+\]
+
+\begin{enumerate}[resume]
+  \item Derive the stationary point of $L(\theta)$. Then show that it is the unique global minimizer, even when $X$ does not have full column rank. \points{7}
+\end{enumerate}
+
+\exercise{2}{Waiting times and Bayesian estimation}{24 points, 25 minutes}
+
+A monitoring system checks a component repeatedly. Each check succeeds independently with probability $q$, where $0<q<1$. Let $K$ be the number of failed checks before the first success. Its probability mass function is
+\[
+  p(K=k\mid q)=q(1-q)^k,\qquad k=0,1,2,\ldots
+\]
+You may use
+\[
+  \sum_{k=0}^{\infty}r^k=\frac{1}{1-r},\qquad |r|<1.
+\]
+
+\begin{enumerate}
+  \item Derive $\mathbb{E}[K\mid q]$. Do not only state the result. \points{3}
+  \item Compute $P(K=2\mid q=0.25)$. Give an exact or decimal value. \points{3}
+\end{enumerate}
+
+Now suppose that $K_1,\ldots,K_N$ are independent observations and define $S=\sum_{n=1}^{N}K_n$. Assume $S>0$.
+
+\begin{enumerate}[resume]
+  \item Write the likelihood and log-likelihood of $q$, up to constants that do not depend on $q$. \points{3}
+  \item Derive the maximum-likelihood estimator of $q$. Verify that your stationary point is a maximum. \points{4}
+\end{enumerate}
+
+Place a $\operatorname{Beta}(a,b)$ prior on $q$, with density
+\[
+  p(q)\propto q^{a-1}(1-q)^{b-1},\qquad 0<q<1,
+\]
+where $a>1$ and $b>1$.
+
+\begin{enumerate}[resume]
+  \item Derive the posterior distribution of $q$ and identify its parameters. \points{4}
+  \item Derive the MAP estimator of $q$. \points{4}
+  \item Identify a one-dimensional statistic of the data that contains all data dependence in the posterior. Briefly justify your answer. \points{3}
+\end{enumerate}
+
+\exercise{3}{Estimating an unknown range}{14 points, 14 minutes}
+
+Measurements $X_1,\ldots,X_N$ are independent and uniformly distributed on $[-M,M]$, where $M>0$ is unknown. Define
+\[
+  A=\max_{1\leq n\leq N}|X_n|.
+\]
+Assume that at least one observed value is nonzero, so $A>0$.
+
+\begin{enumerate}
+  \item Write the likelihood $p(x_1,\ldots,x_N\mid M)$, including the support constraint. \points{4}
+  \item Derive the maximum-likelihood estimator of $M$. For the observations
+  \[
+    -3.2,\quad 1.1,\quad 2.4,\quad -2.8,\quad 0.5,
+  \]
+  give its numerical value. \points{3}
+\end{enumerate}
+
+You may use
+\[
+  \mathbb{E}[A]=\frac{NM}{N+1},
+  \qquad
+  \mathbb{E}[A^2]=\frac{NM^2}{N+2}.
+\]
+
+\begin{enumerate}[resume]
+  \item Derive a multiplicative correction of the maximum-likelihood estimator that is unbiased for $M$. \points{3}
+  \item Derive the variance of your unbiased estimator and simplify the result. \points{4}
+\end{enumerate}
+
+\exercise{4}{Multi-output regression with correlated noise}{23 points, 29 minutes}
+
+For each observation, let $\phi_n\in\mathbb{R}^m$ be a feature vector and $t_n\in\mathbb{R}^k$ be a target vector. Let $W\in\mathbb{R}^{m\times k}$. The model is
+\[
+  t_n=W^\top\phi_n+\varepsilon_n,
+  \qquad
+  \varepsilon_n\sim\mathcal{N}(0,\sigma^2C),
+\]
+where $C\in\mathbb{R}^{k\times k}$ is known and symmetric positive definite, while $\sigma^2>0$ is unknown. The noise vectors are independent.
+
+Let $\Phi\in\mathbb{R}^{N\times m}$ have rows $\phi_n^\top$, and let $T\in\mathbb{R}^{N\times k}$ have rows $t_n^\top$. Assume that $\Phi$ has full column rank, $N>m$, and the data cannot be fitted exactly.
+
+\begin{enumerate}
+  \item State the dimensions of $\Phi W$, $T-\Phi W$, and $(T-\Phi W)^\top(T-\Phi W)$. \points{2}
+  \item Derive the log-likelihood of $W$ and $\sigma^2$, including all terms that depend on either parameter. You may express the quadratic term using a trace. \points{6}
+  \item Derive the maximum-likelihood estimator of $W$. Show why it does not depend on $C$ or $\sigma^2$. \points{7}
+  \item Using the fitted value of $W$, derive the maximum-likelihood estimator of $\sigma^2$. \points{5}
+  \item Let $E=T-\Phi W_{\mathrm{ML}}$. Show that $\Phi^\top E=0$ and explain the geometric meaning of this identity. \points{3}
+\end{enumerate}
+
+\exercise{5}{Information from one Bayesian observation}{19 points, 24 minutes}
+
+After observing a data set $\mathcal{D}_N$, the posterior over the regression weights is
+\[
+  p(w\mid\mathcal{D}_N)=\mathcal{N}(w\mid\mu_N,\Sigma_N),
+\]
+where $w,\mu_N\in\mathbb{R}^m$ and $\Sigma_N\in\mathbb{R}^{m\times m}$ is symmetric positive definite. A new observation has feature vector $\phi\in\mathbb{R}^m$, target $t\in\mathbb{R}$, and likelihood
+\[
+  p(t\mid w,\phi)=\mathcal{N}(t\mid w^\top\phi,\beta^{-1}),
+\]
+where $\beta>0$ is the observation-noise precision.
+
+The standard precision and natural-parameter updates are
+\begin{align*}
+  \Sigma_{N+1}^{-1} &= \Sigma_N^{-1}+\beta\phi\phi^\top,\\
+  \Sigma_{N+1}^{-1}\mu_{N+1} &= \Sigma_N^{-1}\mu_N+\beta\phi t.
+\end{align*}
+You may use the Sherman--Morrison identity
+\[
+  (A+uv^\top)^{-1}
+  =A^{-1}-\frac{A^{-1}uv^\top A^{-1}}{1+v^\top A^{-1}u}.
+\]
+
+\begin{enumerate}
+  \item Derive the rank-one covariance update
+  \[
+    \Sigma_{N+1}=\Sigma_N-
+    \frac{\Sigma_N\phi\phi^\top\Sigma_N}
+    {\beta^{-1}+\phi^\top\Sigma_N\phi}.
+  \]
+  \points{4}
+  \item Derive the innovation form of the mean update
+  \[
+    \mu_{N+1}=\mu_N+K(t-\phi^\top\mu_N),
+  \]
+  and give the gain vector $K$. Explain the roles of the direction and the scalar residual in this update. \points{5}
+  \item Before observing $t$, derive the posterior predictive distribution $p(t\mid\phi,\mathcal{D}_N)$. Give both its mean and variance, and identify the two sources of predictive variance. \points{4}
+  \item For any direction $a\in\mathbb{R}^m$, derive
+  \[
+    a^\top(\Sigma_N-\Sigma_{N+1})a.
+  \]
+  Show that it is nonnegative. State exactly when it is zero and explain what this says about the parameter directions learned from the observation. \points{6}
+\end{enumerate}
+
+\vfill
+\begin{center}
+  \textbf{End of Mock Exam A}
+\end{center}
+
+\end{document}
