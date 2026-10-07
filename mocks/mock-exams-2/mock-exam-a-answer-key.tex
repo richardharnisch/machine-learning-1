@@ -1,0 +1,392 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=22mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools,microtype}
+\usepackage{xcolor,enumitem,fancyhdr,booktabs,needspace}
+\usepackage[hidelinks]{hyperref}
+\definecolor{examblue}{HTML}{17365D}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textsc{Machine Learning 1}}
+\rhead{\textsc{Mock 2 --- A: Answer Key}}
+\cfoot{\thepage}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.1em}
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\tr}{tr}
+\newcommand{\solution}[3]{\Needspace{6\baselineskip}\subsection*{\color{examblue}#1\quad #2\hfill\normalsize[#3 p]}}
+\newcommand{\selfcredit}[1]{\par\textit{Suggested credit: #1}\par}
+
+\begin{document}
+\begin{center}
+{\Huge\bfseries\color{examblue}Mock Midterm 2 --- A}\par
+\vspace{0.5em}
+{\LARGE Worked solutions and marking guide}\par
+\vspace{0.7em}
+{\large 18 points: Exercise 1 (10), Exercise 2 (8)}
+\end{center}
+These are full solutions, not only final answers. The marking allocations are for
+self-assessment, not an official course rubric. Equivalent derivations and the
+opposite sign of a PCA eigenvector are valid. Give partial credit for a correct
+method even if a later arithmetic error propagates.
+
+\section*{Exercise 1: Two sensors, one class-dependent rate}
+\solution{1a}{Joint likelihood and constrained estimation}{3}
+First use the product rule $p(x,C_k)=\pi_kp(x\mid C_k)$, then conditional
+independence of the two sensors. Independence of training observations gives
+\[
+p(X,T\mid\pi,\lambda)=\prod_{n=1}^N\prod_{k=1}^K
+\left[\pi_k\frac{2^{m_n}}{m_n!}\lambda_k^{m_n+1}
+e^{-\lambda_k(2+s_n)}\right]^{t_{nk}}.
+\]
+In particular, the two rate factors combine to $\lambda_k^{m_n+1}$.
+Writing $B=\sum_n[m_n\log2-\log(m_n!)]$, which is parameter-independent,
+\[
+\ell=B+\sum_k\left[N_k\log\pi_k+(M_k+N_k)\log\lambda_k
+-(2N_k+S_k)\lambda_k\right].
+\]
+For the rates,
+\[
+\frac{\partial\ell}{\partial\lambda_k}
+=\frac{M_k+N_k}{\lambda_k}-(2N_k+S_k)=0
+\quad\Longrightarrow\quad
+\boxed{\widehat\lambda_k=\frac{M_k+N_k}{2N_k+S_k}}.
+\]
+The second derivative is $-(M_k+N_k)/\lambda_k^2<0$. The log-likelihood tends
+to $-\infty$ at both ends of the positive rate domain, so this is its unique
+global rate maximum. The positive count $N_k$ ensures both numerator and
+denominator are positive, even when every count or waiting time in a class is zero.
+
+For the priors use
+\[
+\mathcal L=\sum_kN_k\log\pi_k+\eta\left(\sum_k\pi_k-1\right).
+\]
+The stationary conditions give $N_k/\pi_k+\eta=0$, hence
+$\pi_k=-N_k/\eta$. Summing gives $\eta=-N$ and therefore
+\[
+\boxed{\widehat\pi_k=N_k/N}.
+\]
+The prior part is strictly concave on the simplex interior and tends to
+$-\infty$ if any $\pi_k\to0$ with $N_k>0$.
+\selfcredit{1 p for the likelihood and log-likelihood; 1 p for the rate estimate and maximum check; 1 p for the constrained prior estimate.}
+
+\solution{1b}{Posterior scores and class region}{2}
+The fitted parameters are
+\[
+\boxed{(\widehat\pi_1,\widehat\pi_2,\widehat\pi_3)
+=(\tfrac12,\tfrac14,\tfrac14),\qquad
+(\widehat\lambda_1,\widehat\lambda_2,\widehat\lambda_3)=(1,2,\tfrac12)}.
+\]
+Bayes' rule gives
+\[
+p(C_k\mid m,s)=
+\frac{\pi_k\lambda_k^{m+1}e^{-\lambda_k(2+s)}}
+{\sum_j\pi_j\lambda_j^{m+1}e^{-\lambda_j(2+s)}}.
+\]
+The common factor $2^m/m!$ cancels. An affine score is
+\[
+g_k(m,s)=\log\pi_k+\log\lambda_k-2\lambda_k
++m\log\lambda_k-s\lambda_k,
+\qquad p(C_k\mid m,s)=\operatorname{softmax}(g)_k.
+\]
+Thus $C_1$ is at least as probable as its two competitors precisely when
+\begin{align*}
+g_1-g_2&=2+s-m\log2\geq0,\\
+g_1-g_3&=(m+2)\log2-1-\tfrac12s\geq0.
+\end{align*}
+Equivalently,
+\[
+\boxed{m\log2\leq2+s,\qquad 1+\tfrac12s\leq(m+2)\log2}.
+\]
+With $m,s\geq0$ treated as real coordinates, this region is an intersection
+of half-spaces and is convex. The actual count-domain subset is not a convex
+subset of $\R^2$ merely because it is restricted to integer $m$; the question
+explicitly asks about the continuous relaxation. Ties may be assigned by any
+specified tie rule, whereas these non-strict inequalities describe posterior dominance.
+\selfcredit{0.5 p for parameters; 0.5 p for scores/posterior; 0.75 p for inequalities; 0.25 p for convexity with the domain qualification.}
+
+\solution{1c}{A missing sensor changes the decision}{1}
+For the complete input $(0,\tfrac12)$,
+\[
+g_1-g_2=\tfrac52>0,\qquad
+g_1-g_3=2\log2-\tfrac54>0.
+\]
+Consequently the predicted class is $\boxed{C_1}$.
+
+If the time is unobserved, integrate out the time density:
+\[
+p(m\mid C_k)=\int_0^\infty p(m,s\mid C_k)\,ds
+=\frac{(2\lambda_k)^me^{-2\lambda_k}}{m!},
+\]
+since the exponential density integrates to one. Missingness itself gives no
+additional class evidence under the stipulated independent failure mechanism.
+The count-only posterior is
+\[
+\boxed{p(C_k\mid m)=
+\frac{\pi_k\lambda_k^m e^{-2\lambda_k}}
+{\sum_j\pi_j\lambda_j^m e^{-2\lambda_j}}}.
+\]
+At $m=0$ the unnormalized probabilities are
+\[
+\tfrac12e^{-2},\qquad\tfrac14e^{-4},\qquad\tfrac14e^{-1}.
+\]
+The last is largest: its ratio to the first is $e/2>1$. The new prediction is
+$\boxed{C_3}$. Setting $s=0$ retains the factor $p(s=0\mid C_k)=\lambda_k$
+as a density value and gives the complete-input prediction $C_1$, not the
+count-only prediction. A missing observation is not an observed zero.
+\selfcredit{0.5 p for marginalization and the count-only posterior; 0.5 p for both decisions and the zero-imputation distinction.}
+
+\solution{1d}{Conditional independence is not marginal independence}{1}
+Within a class,
+\[
+\E[MS\mid C_k]=\E[M\mid C_k]\E[S\mid C_k]=2.
+\]
+Thus $\E[MS]=2$, while
+\[
+\E[M]=2\sum_k\pi_k\lambda_k,
+\qquad \E[S]=\sum_k\frac{\pi_k}{\lambda_k}.
+\]
+In general this gives
+\[
+\boxed{\Cov(M,S)=2-2\left(\sum_k\pi_k\lambda_k\right)
+\left(\sum_k\frac{\pi_k}{\lambda_k}\right)}.
+\]
+For these fitted parameters,
+\[
+\sum_k\pi_k\lambda_k=\tfrac98,\qquad
+\sum_k\frac{\pi_k}{\lambda_k}=\tfrac98,
+\qquad \boxed{\Cov(M,S)=2-\tfrac{81}{32}=-\tfrac{17}{32}}.
+\]
+Nonzero covariance rules out unconditional independence. Classes with higher
+rates tend to have higher counts but shorter waiting times; the hidden class
+links the sensors after it is marginalized out.
+\selfcredit{0.5 p for the expectation/covariance derivation; 0.5 p for the value and the independence conclusion.}
+
+\solution{1e}{MAP with correlated weight regularization}{2}
+The label likelihood is $\prod_{n,k}y_{nk}^{t_{nk}}$. Bayes' rule gives
+\[
+p(W\mid\Phi,T)\propto
+\left(\prod_{n,k}y_{nk}^{t_{nk}}\right)
+\exp\!\left[-\frac\alpha2\sum_kw_k^\top Rw_k\right].
+\]
+The evidence and Gaussian normalizers do not depend on $W$. Minimize
+\[
+\boxed{L(W)=-\sum_{n,k}t_{nk}\log y_{nk}
++\frac\alpha2\sum_kw_k^\top Rw_k}.
+\]
+Let $a_{nk}=\sum_rw_{kr}\phi_{nr}$. In index notation,
+\[
+\frac{\partial\log y_{nk}}{\partial w_{jr}}
+=\frac{\partial}{\partial w_{jr}}
+\left(a_{nk}-\log\sum_\ell e^{a_{n\ell}}\right)
+=(\delta_{kj}-y_{nj})\phi_{nr}.
+\]
+Since each target row sums to one, the likelihood contribution is
+\[
+-\sum_{n,k}t_{nk}(\delta_{kj}-y_{nj})\phi_{nr}
+=\sum_n(y_{nj}-t_{nj})\phi_{nr}.
+\]
+For the prior contribution, symmetry of $R$ is essential:
+\begin{align*}
+\frac{\partial}{\partial w_{jr}}\frac\alpha2
+\sum_{p,q}w_{jp}R_{pq}w_{jq}
+&=\frac\alpha2\left(\sum_qR_{rq}w_{jq}+\sum_pw_{jp}R_{pr}\right)\\
+&=\alpha\sum_qR_{rq}w_{jq}.
+\end{align*}
+Therefore
+\[
+\boxed{\frac{\partial L}{\partial w_{jr}}
+=\sum_n(y_{nj}-t_{nj})\phi_{nr}+\alpha\sum_qR_{rq}w_{jq}},
+\]
+\[
+\boxed{\nabla_{w_j}L=\sum_n(y_{nj}-t_{nj})\phi_n+\alpha Rw_j\in\R^3}.
+\]
+The numerator-layout derivative is the transpose, a $1\times3$ row.
+\selfcredit{0.5 p for the objective; 1 p for the component calculation including the full $R$; 0.5 p for the assembled gradient.}
+
+\solution{1f}{Softmax ambiguity and the MAP representative}{1}
+For a common shift $v$, each logit gains $v^\top\phi_n$:
+\[
+\frac{e^{(w_k+v)^\top\phi_n}}{\sum_je^{(w_j+v)^\top\phi_n}}
+=\frac{e^{w_k^\top\phi_n}}{\sum_je^{w_j^\top\phi_n}}.
+\]
+The likelihood cannot distinguish these weight configurations. At a MAP
+minimizer, summing the $K$ zero-gradient conditions gives
+\[
+0=\sum_n\left(\sum_jy_{nj}-\sum_jt_{nj}\right)\phi_n
++\alpha R\sum_jw_j=\alpha R\sum_jw_j.
+\]
+Since $\alpha>0$ and $R$ is invertible,
+\[
+\boxed{\sum_jw_j=0}.
+\]
+Equivalently, within any common-shift family the quadratic penalty is smallest
+at $v=-K^{-1}\sum_jw_j$. The prior chooses the centered representative; it
+does not remove the invariance of the prediction formula itself. Here the
+positive definite penalty also makes the complete objective strongly convex
+and coercive, so it has a unique finite MAP minimizer.
+\selfcredit{0.5 p for shift invariance; 0.5 p for the zero-sum proof and its interpretation.}
+
+\newpage
+\section*{Exercise 2: PCA with an offset and a forbidden direction}
+\solution{2a}{All affine offsets and the trace objective}{2}
+Write $P=uu^\top$. Then $P^\top=P$, $P^2=P$, and
+\[
+x_i-\widehat x_i=(I-P)(x_i-c).
+\]
+Decompose $x_i-c=(x_i-\bar x)+(\bar x-c)$. The cross term disappears because
+$\sum_iq_i(x_i-\bar x)=0$, so
+\begin{align*}
+E(c,u)
+&=\sum_iq_i(x_i-\bar x)^\top(I-P)(x_i-\bar x)
++\|(I-P)(\bar x-c)\|^2\\
+&=\tr[S(I-P)]+\|(I-P)(\bar x-c)\|^2.
+\end{align*}
+For fixed $u$, all minimizers satisfy $(I-P)(\bar x-c)=0$. Therefore
+\[
+\boxed{c=\bar x+\gamma u,\qquad \gamma\in\R}.
+\]
+These offsets describe the same affine line. In particular, $c=\bar x$ is a
+valid representative but is not the only one. After minimizing over $c$,
+\[
+\boxed{\min_c E(c,u)=\tr[S(I-uu^\top)]=\tr(S)-u^\top Su}.
+\]
+Thus maximizing retained variance minimizes reconstruction error. The repetition
+weights are required: they represent the full $N$-observation dataset, not an
+equally weighted dataset of the $J$ distinct vectors.
+\selfcredit{1 p for the decomposition and all offsets; 1 p for the trace reduction and offset interpretation.}
+
+\solution{2b}{Unconstrained component and a new input}{1}
+An orthonormal eigensystem of $S$ is
+\[
+u_1=\frac1{\sqrt2}\begin{pmatrix}1\\1\\0\end{pmatrix},\quad \lambda_1=7;
+\qquad u_2=\frac1{\sqrt2}\begin{pmatrix}1\\-1\\0\end{pmatrix},\quad \lambda_2=3;
+\qquad u_3=\begin{pmatrix}0\\0\\1\end{pmatrix},\quad \lambda_3=1.
+\]
+For a unit vector $u=\sum_j\beta_ju_j$, $u^\top Su=\sum_j\lambda_j\beta_j^2$
+and $\sum_j\beta_j^2=1$. The largest possible retained variance is 7,
+attained at $u=\pm u_1$. Choosing $u=u_1$,
+\[
+\boxed{\text{retained variance}=7,\qquad E_{\min}=11-7=4}.
+\]
+The new centered input is $r_*=x_*-\bar x=(2,1,2)^\top$. Consequently
+\[
+z_*=u_1^\top r_*=\frac3{\sqrt2},\qquad
+\widehat x_*=\bar x+u_1z_*=\boxed{(\tfrac{11}{2},-\tfrac12,1)^\top}.
+\]
+Its residual is $(\tfrac12,-\tfrac12,2)^\top$, with squared norm
+$\boxed{9/2}$. A single point's error need not equal the training average 4.
+Changing the sign of $u_1$ changes $z_*$ but not the reconstruction.
+\selfcredit{0.5 p for the direction, variance and average error; 0.5 p for the coordinate, reconstruction and pointwise error.}
+
+\solution{2c}{The forbidden direction changes the optimum}{2}
+Here $v=u_1$. Maximize $u^\top Su$ subject to both constraints with
+\[
+\mathcal L(u,\lambda,\eta)=u^\top Su-\lambda(u^\top u-1)-2\eta v^\top u.
+\]
+The stationary conditions are
+\[
+Su-\lambda u-\eta v=0,\qquad u^\top u=1,\qquad v^\top u=0.
+\]
+Multiplying the first equation by $v^\top$ and using $Sv=7v$ gives
+$\eta=0$. The feasible plane is spanned by $u_2,u_3$. Their eigenvalues are
+distinct, so the stationary directions and multipliers are exactly
+\[
+\boxed{u=\pm u_2,\ \lambda=3,\ \eta=0;
+\qquad u=\pm u_3,\ \lambda=1,\ \eta=0}.
+\]
+Signs or multiplier values can change if a different Lagrangian sign convention
+is used; the directions and their classification cannot. On the feasible unit
+circle, writing $u=\beta_2u_2+\beta_3u_3$ gives variance
+$3\beta_2^2+\beta_3^2\leq3$. Thus $\pm u_2$ are global maxima, while
+$\pm u_3$ are global minima of retained variance.
+\[
+\boxed{E_{\min,\mathrm{constrained}}=11-3=8}.
+\]
+Using $u_2$ for the new input gives $z_*=1/\sqrt2$ and
+\[
+\widehat x_*=\bar x+(\tfrac12,-\tfrac12,0)^\top
+=\boxed{(\tfrac92,-\tfrac52,1)^\top}.
+\]
+The residual is $(\tfrac32,\tfrac32,2)^\top$, so its squared norm is
+$\boxed{17/2}$.
+\selfcredit{1 p for the constrained stationary calculation and all directions; 0.5 p for the global maximum and average error; 0.5 p for the new-point calculation.}
+
+\solution{2d}{PPCA likelihood and residual noise}{2}
+In the eigenbasis $(u_1,u_2,u_3)$, $C$ has eigenvalues $a+\tau,\tau,\tau$.
+For fixed $\mu=\bar x$, the log-likelihood is
+\begin{align*}
+\ell(a,\tau)
+&=-\frac{3N}{2}\log(2\pi)-\frac N2\log|C|
+-\frac N2\tr(C^{-1}S)\\
+&=\mathrm{const}-\frac N2\left[
+\log(a+\tau)+2\log\tau+\frac7{a+\tau}+\frac4\tau\right].
+\end{align*}
+To avoid confusing the noise variance with its standard deviation, $\tau$
+itself is the variance here. Introduce $\nu=a+\tau$, so $\nu\geq\tau>0$.
+The derivatives with respect to the independent coordinates are
+\[
+\frac{\partial\ell}{\partial\nu}
+=-\frac N2\left(\frac1\nu-\frac7{\nu^2}\right),\qquad
+\frac{\partial\ell}{\partial\tau}\bigg|_\nu
+=-\frac N2\left(\frac2\tau-\frac4{\tau^2}\right).
+\]
+They vanish at $\nu=7$ and $\tau=2$, which satisfy the domain constraint.
+Each bracketed scalar objective decreases up to this point and increases after
+it; these are global minima of the negative log-likelihood terms. Hence
+\[
+\boxed{a=5,\qquad \tau=2,\qquad w=\sqrt5\,u_1}.
+\]
+The fitted covariance is
+\[
+\boxed{C=5u_1u_1^\top+2I_3
+=\begin{pmatrix}9/2&5/2&0\\5/2&9/2&0\\0&0&2\end{pmatrix}}.
+\]
+Its eigenvalues are $(7,2,2)$, not the sample eigenvalues $(7,3,1)$.
+The leading variance is fitted exactly. In the two discarded directions,
+isotropic noise must use a common variance, their average $(3+1)/2=2$.
+This model therefore need not reproduce the full sample covariance.
+\selfcredit{0.5 p for the likelihood; 1 p for the optimizing calculation and domain check; 0.5 p for $C$ and the discrepancy.}
+
+\solution{2e}{A different latent coordinate is not a richer marginal family}{1}
+Take the positive choice of $w$ from 2d and set
+\[
+\boxed{w'=\frac13w=\frac{\sqrt5}{3}u_1,\qquad
+\mu'=\bar x-\frac23w}.
+\]
+Since $\E[z']=2$ and $\Var(z')=9$, the new marginal has
+\[
+\E[x]=2w'+\mu'=\bar x,\qquad
+\Cov(x)=9w'w'^\top+2I_3=ww^\top+2I_3=C.
+\]
+Both constructions are Gaussian, so equal means and covariances establish
+equal marginal distributions. The negative loading choice is also valid if
+$\mu'$ is adjusted to keep $\mu'+2w'=\bar x$.
+
+Changing a scalar Gaussian latent prior cannot make the model match $S$:
+its signal covariance remains rank at most one, and two marginal eigenvalues
+must equal the isotropic noise variance. All three eigenvalues of $S$ are
+distinct. More specifically, with the fixed variance 2,
+$S-2I$ has eigenvalues $(5,1,-1)$, so it cannot be a positive semidefinite
+signal covariance of any Gaussian loading. The reparameterization changes
+latent coordinates, not the marginal model's expressive power.
+\selfcredit{0.5 p for parameters and preserved marginal; 0.5 p for the rank/eigenvalue argument.}
+
+\section*{Scope and source alignment}
+The format follows \path{exams/homework-based-exam-1.pdf}: two extended
+exercises, two hours, 18 points, derivations, and follow-up insights. The
+actual second midterm's question count and topic selection are unknown.
+\begin{itemize}
+  \item Exercise 1 develops HW 2 Exercises 1 and 3, practice sets 3--4, and lectures 5--7. New elements are a shared rate across two different sensor distributions, a sensor missing at prediction time, marginal dependence, a full precision matrix, and the softmax common-shift ambiguity.
+  \item Exercise 2 develops HW 2 Exercises 4--5, practice set 5, and lecture 10. New elements are repetition weights, all affine offsets, a forbidden direction, new numerical data, fitting the PPCA likelihood in eigenvalue coordinates, and the difference between reparameterization and increased model capacity.
+\end{itemize}
+The foundational operations necessarily recur, but no original homework or
+practice-set problem, dataset, or complete derivation sequence is reproduced.
+The questions are intentionally harder than the first midterm; the point total
+does not imply equal workload.
+\end{document}

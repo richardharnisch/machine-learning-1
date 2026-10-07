@@ -1,0 +1,407 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=22mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools,microtype}
+\usepackage{xcolor,enumitem,fancyhdr,booktabs,needspace}
+\usepackage[hidelinks]{hyperref}
+\definecolor{examblue}{HTML}{17365D}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textsc{Machine Learning 1}}
+\rhead{\textsc{Mock 2 --- B: Answer Key}}
+\cfoot{\thepage}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.1em}
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\ReLU}{ReLU}
+\newcommand{\solution}[3]{\Needspace{6\baselineskip}\subsection*{\color{examblue}#1\quad #2\hfill\normalsize[#3 p]}}
+\newcommand{\selfcredit}[1]{\par\textit{Suggested credit: #1}\par}
+
+\begin{document}
+\begin{center}
+{\Huge\bfseries\color{examblue}Mock Midterm 2 --- B}\par
+\vspace{0.5em}
+{\LARGE Worked solutions and marking guide}\par
+\vspace{0.7em}
+{\large 18 points: Exercise 1 (8), Exercise 2 (10)}
+\end{center}
+These are full solutions, not only final answers. The marking allocations are
+for self-assessment, not an official course rubric. Any equivalent network
+construction or correct derivation can receive full credit. Give partial credit
+for a correct method even if a later arithmetic error propagates.
+
+\section*{Exercise 1: A nonlinear Bayes rule and a small neural network}
+\solution{1a}{Posterior log odds and a bent boundary}{2}
+Bayes' rule cancels the evidence:
+\[
+a(x)=\log\frac{\pi_1}{\pi_2}
++\log\frac{p(x_1\mid C_1)}{p(x_1\mid C_2)}
++\log\frac{p(x_2\mid C_1)}{p(x_2\mid C_2)}.
+\]
+The prior term is $-\log2$. The Laplace ratio contributes
+\[
+\log2-|x_1|+\tfrac12|x_1|=\log2-\tfrac12|x_1|.
+\]
+The Gaussian normalizers cancel, and their log ratio is
+\[
+-\tfrac12\left[(x_2-\tfrac12)^2-(x_2+\tfrac12)^2\right]=x_2.
+\]
+All constants therefore cancel:
+\[
+\boxed{a(x)=x_2-\tfrac12|x_1|,\qquad
+p(C_1\mid x)=\sigma(x_2-\tfrac12|x_1|)}.
+\]
+The strict decision region is
+\[
+\boxed{R_1=\{x:x_2>\tfrac12|x_1|\}}.
+\]
+The boundary is a V with vertex at the origin: the ray $x_2=x_1/2$ for
+$x_1\geq0$ and the ray $x_2=-x_1/2$ for $x_1\leq0$. The region is above
+both rays. On the boundary, both posteriors are $1/2$.
+
+Naive Bayes says that the log odds are a sum of one-coordinate functions.
+It does \emph{not} require each function to be linear in its coordinate.
+The Laplace log ratio introduces an absolute value, giving a piecewise-linear
+rather than a globally affine decision rule.
+\selfcredit{1 p for the simplified posterior/log odds; 0.5 p for the region and boundary; 0.5 p for the distinction between conditional independence and linearity.}
+
+\solution{1b}{Correct labels, nonlinear features, and nonexistence of a finite MLE}{2}
+Let an affine logit be $g(x)=w_0+w_1x_1+w_2x_2$, with $g>0$ for $C_1$.
+Because $(0,1)$ is the midpoint of the other two points,
+\[
+g(0,1)=\tfrac12\big[g(-4,1)+g(4,1)\big].
+\]
+If both outer points have strictly negative logits, their midpoint does too.
+This contradicts the required positive logit at the middle point. No affine
+classifier can strictly classify the three points.
+
+One valid fixed feature map and weight vector are
+\[
+\boxed{\phi(x)=(1,|x_1|,x_2)^\top,\qquad
+w=(0,-\tfrac12,1)^\top}.
+\]
+They give $w^\top\phi(x)=a(x)$ for every input, not only the three points.
+The three logits are $+1,-1,-1$, so the transformed data are strictly
+linearly separable. Multiplying $w$ by $q>0$ preserves all predicted labels
+and increases their correct-class probabilities. The negative log-likelihood is
+\[
+L(qw)=3\log(1+e^{-q})\longrightarrow0\quad\text{as }q\to\infty.
+\]
+At any finite weight vector, each sigmoid probability lies strictly between
+zero and one, so every correctly labeled observation has a strictly positive
+loss. The likelihood supremum is 1 but is not attained at finite weights:
+\[
+\boxed{\text{There is no finite unregularized MLE for this separable dataset.}}
+\]
+Finite weights can give perfect classification accuracy without assigning
+probability 1 to the observed labels. A positive definite Gaussian weight prior
+would prevent this unlimited scaling for logistic regression with fixed features.
+\selfcredit{0.75 p for the affine impossibility proof; 0.5 p for exact nonlinear features; 0.75 p for the finite-MLE distinction and scaling argument.}
+
+\solution{1c}{An exact two-unit construction with a direct connection}{1}
+Use
+\[
+\boxed{U=\begin{pmatrix}1&0\\-1&0\end{pmatrix},\quad
+b=\begin{pmatrix}0\\0\end{pmatrix},\quad
+c=\begin{pmatrix}-1/2\\-1/2\end{pmatrix},\quad
+v=\begin{pmatrix}0\\1\end{pmatrix},\quad d=0}.
+\]
+Then $h_1=\ReLU(x_1)$ and $h_2=\ReLU(-x_1)$, and
+\[
+c^\top h+v^\top x+d
+=-\tfrac12[\ReLU(x_1)+\ReLU(-x_1)]+x_2
+=x_2-\tfrac12|x_1|.
+\]
+The hidden units form the absolute-value term. The direct connection supplies
+$x_2$ without using extra hidden units. All parameters are finite. Hidden-unit
+permutations and positive rescalings of ReLU units give equivalent constructions.
+\selfcredit{0.75 p for a valid exact construction; 0.25 p for identifying the two paths.}
+
+\solution{1d}{Backpropagation through both paths}{2}
+First differentiate the binary cross entropy and sigmoid:
+\[
+\frac{\partial L}{\partial y}=-\frac ty+\frac{1-t}{1-y},\qquad
+\frac{dy}{da}=y(1-y),\qquad
+\boxed{\delta:=\frac{\partial L}{\partial a}=y-t}.
+\]
+Let $I_i=\mathbf1\{r_i>0\}$ and let $D_h=\operatorname{diag}(I_1,I_2)$.
+From $r_i=\sum_jU_{ij}x_j+b_i$ and
+$a=\sum_ic_ih_i+\sum_jv_jx_j+d$, component derivatives are
+\begin{align*}
+\frac{\partial L}{\partial U_{ij}}&=\delta c_i I_i x_j,&
+\frac{\partial L}{\partial b_i}&=\delta c_i I_i,\\
+\frac{\partial L}{\partial c_i}&=\delta h_i,&
+\frac{\partial L}{\partial v_j}&=\delta x_j,&
+\frac{\partial L}{\partial d}&=\delta,\\
+\frac{\partial L}{\partial x_j}&=
+\delta\left(\sum_ic_iI_iU_{ij}+v_j\right).
+\end{align*}
+Assembled gradients and the numerator-layout input derivative are
+\begin{align*}
+\nabla_U L&=\delta(D_hc)x^\top\in\R^{2\times2},&
+\nabla_b L&=\delta D_hc\in\R^2,\\
+\nabla_c L&=\delta h\in\R^2,&
+\nabla_v L&=\delta x\in\R^2,\\
+\boxed{\frac{dL}{dx}}&\boxed{=\delta(c^\top D_hU+v^\top)\in\R^{1\times2}}.
+\end{align*}
+The input derivative is the \emph{sum} of the hidden-layer path and the
+direct path; omitting $v^\top$ gives the wrong result.
+
+For the specified numerical check,
+\[
+r=(1,-2)^\top,\quad h=(1,0)^\top,\quad a=0,\quad
+y=\tfrac12,\quad \delta=-\tfrac12,\quad D_hc=(1,0)^\top.
+\]
+Therefore
+\[
+\boxed{\nabla_U L=\begin{pmatrix}-1&0\\0&0\end{pmatrix},\qquad
+\frac{dL}{dx}=(-\tfrac12,-1)}.
+\]
+For reference, the other gradients are
+$\nabla_bL=(-\tfrac12,0)^\top$, $\nabla_cL=(-\tfrac12,0)^\top$,
+$\nabla_vL=(-1,0)^\top$, and $\partial L/\partial d=-\tfrac12$.
+\selfcredit{0.25 p for the logit derivative; 1.25 p for component and assembled derivatives, including both input paths; 0.5 p for the two numerical results.}
+
+\solution{1e}{Zero initialization cannot learn the hidden features}{1}
+At initialization $U=b=c=0$, so $r=h=0$ for every training input. Under
+$\ReLU'(0)=0$, $D_h=0$. The formulas in 1d give
+\[
+\nabla_U L=0,\qquad\nabla_b L=0,\qquad\nabla_c L=\delta h=0
+\]
+for every observation, regardless of the current $v,d$.
+An isotropic Gaussian prior adds gradients proportional to the parameters,
+which are also zero for $U,b,c$. A gradient step therefore leaves all three
+at zero. This repeats at every subsequent step, proving the claim by induction.
+
+The resulting predictor is always $\sigma(v^\top x+d)$, an affine-logit
+classifier. By 1b it cannot strictly classify all three points correctly.
+Weight decay cannot move a parameter away from zero when both its data
+gradient and its penalty gradient are zero. A nonzero, appropriately scaled
+hidden initialization avoids this particular frozen state; this is an
+optimization failure, not a lack of representational capacity of the full network.
+\selfcredit{0.5 p for the gradient/induction argument; 0.5 p for the capacity reduction and why the prior cannot revive the layer.}
+
+\newpage
+\section*{Exercise 2: Soft routing among regression experts}
+\solution{2a}{Joint, marginal, and posterior expert probabilities}{2}
+Write $m_{nk}=\theta_k^\top\phi_n$ and
+$f_{nk}=\mathcal N(t_n\mid m_{nk},s^2)$. With one-hot expert indicators,
+\[
+\boxed{p(t,Z\mid X,\Theta,V,s^2)=
+\prod_{n=1}^N\prod_{k=1}^K[\pi_{nk}f_{nk}]^{z_{nk}}}.
+\]
+For each observation exactly one expert is active. Summing over its possible
+values gives
+\[
+\boxed{p(t\mid X,\Theta,V,s^2)=\prod_n\left(\sum_k\pi_{nk}f_{nk}\right)},
+\qquad
+\boxed{\ell=\sum_n\log\left(\sum_k\pi_{nk}f_{nk}\right)}.
+\]
+By Bayes' rule,
+\[
+\boxed{r_{nk}=\frac{\pi_{nk}f_{nk}}{\sum_j\pi_{nj}f_{nj}}},\qquad
+\sum_kr_{nk}=1.
+\]
+The experts are alternative explanations for one target, not independent
+observations of that target. Their densities must be added with routing
+weights. Multiplying them neither marginalizes a categorical latent variable
+nor generally gives the stated normalized mixture density.
+\selfcredit{0.5 p each for complete likelihood, observed likelihood/log-likelihood, responsibilities, and the sum-versus-product explanation.}
+
+\solution{2b}{Observed-likelihood gradients and an unidentifiable gate}{2}
+Let $p_n=\sum_j\pi_{nj}f_{nj}$. For an expert parameter component,
+\begin{align*}
+\frac{\partial\ell}{\partial\theta_{kr}}
+&=\sum_n\frac{\pi_{nk}f_{nk}}{p_n}
+\frac{\partial\log f_{nk}}{\partial\theta_{kr}}\\
+&=\sum_nr_{nk}\frac{t_n-\theta_k^\top\phi_n}{s^2}\phi_{nr}.
+\end{align*}
+Thus the column gradient is
+\[
+\boxed{\nabla_{\theta_k}\ell
+=\frac1{s^2}\sum_nr_{nk}(t_n-\theta_k^\top\phi_n)\phi_n\in\R^M}.
+\]
+For the routing parameters, differentiate the softmax in components:
+\[
+\frac{\partial\pi_{nj}}{\partial v_{kr}}
+=\pi_{nj}(\delta_{jk}-\pi_{nk})\phi_{nr}.
+\]
+Consequently
+\begin{align*}
+\frac{\partial\ell}{\partial v_{kr}}
+&=\sum_n\frac1{p_n}\sum_jf_{nj}\pi_{nj}
+(\delta_{jk}-\pi_{nk})\phi_{nr}\\
+&=\sum_n\left(r_{nk}-\pi_{nk}\sum_jr_{nj}\right)\phi_{nr}
+=\sum_n(r_{nk}-\pi_{nk})\phi_{nr},
+\end{align*}
+so
+\[
+\boxed{\nabla_{v_k}\ell=\sum_n(r_{nk}-\pi_{nk})\phi_n\in\R^M}.
+\]
+These formulas come directly from differentiating the log of a sum. Although
+the responsibilities depend on current parameters, they appear as the result
+of the derivative; there is no additional $\partial r/\partial\theta$ term in
+these final formulas.
+
+If all expert densities are the same, say $f_{nk}=f_n$, then
+$p_n=f_n\sum_k\pi_{nk}=f_n$ and $r_{nk}=\pi_{nk}$. Hence every routing
+gradient is zero and the likelihood is independent of $V$. The data provide
+no information about routing between identical experts. This is a stronger
+ambiguity than the usual softmax common-shift invariance.
+\selfcredit{0.75 p for each gradient with a component derivation; 0.5 p for the identical-expert conclusion.}
+
+\solution{2c}{EM updates and the condition for monotonicity}{3}
+Initialize finite expert and routing parameters and $s^2>0$, preferably using
+different initial experts. At iteration $j$:
+
+\textbf{E-step.} Use the old parameters to calculate
+\[
+r_{nk}^{(j)}=
+\frac{\pi_{nk}^{(j)}\mathcal N(t_n\mid(\theta_k^{(j)})^\top\phi_n,(s^2)^{(j)})}
+{\sum_\ell\pi_{n\ell}^{(j)}\mathcal N(t_n\mid(\theta_\ell^{(j)})^\top\phi_n,(s^2)^{(j)})}.
+\]
+\textbf{M-step or generalized M-step.} Hold these responsibilities fixed in
+\[
+Q(\Theta,V,s^2)=\sum_{n,k}r_{nk}^{(j)}\left[
+\log\pi_{nk}(V)-\frac12\log(2\pi s^2)
+-\frac{(t_n-\theta_k^\top\phi_n)^2}{2s^2}\right].
+\]
+Do not recompute or differentiate the responsibilities inside this objective.
+The old posterior defines the expectation; the new parameters are its
+optimization variables.
+
+Let $\Phi\in\R^{N\times M}$ have rows $\phi_n^\top$,
+$t\in\R^N$, and $D_k=\operatorname{diag}(r_{1k}^{(j)},\ldots,r_{Nk}^{(j)})$.
+Differentiation of $Q$ with respect to an expert component gives
+\[
+\frac{\partial Q}{\partial\theta_{kr}}
+=\frac1{s^2}\sum_nr_{nk}^{(j)}(t_n-\theta_k^\top\phi_n)\phi_{nr}.
+\]
+Setting this to zero yields the weighted normal equations and update
+\[
+\Phi^\top D_k\Phi\,\theta_k=\Phi^\top D_kt,
+\qquad
+\boxed{\theta_k^{(j+1)}=(\Phi^\top D_k\Phi)^{-1}\Phi^\top D_kt}.
+\]
+The inverse exists by assumption. This weighted least-squares update is
+independent of the shared variance. The factor $1/s^2$ cancels, but the
+responsibilities still depended on the old variance in the E-step.
+
+Set
+$A=\sum_{n,k}r_{nk}^{(j)}[t_n-(\theta_k^{(j+1)})^\top\phi_n]^2$.
+Because $\sum_{n,k}r_{nk}^{(j)}=N$, the variance-dependent part of $Q$ is
+$-\tfrac N2\log s^2-A/(2s^2)$. Treating $s^2$ as the optimization variable,
+\[
+\frac{\partial Q}{\partial s^2}=-\frac N{2s^2}+\frac A{2(s^2)^2}=0,
+\qquad
+\boxed{(s^2)^{(j+1)}=\frac1N\sum_{n,k}r_{nk}^{(j)}
+[t_n-(\theta_k^{(j+1)})^\top\phi_n]^2}.
+\]
+The denominator is $N$, not $NK$, since the responsibilities of each
+observation sum to one. Positivity of $A$ gives an interior variance maximum.
+
+The routing objective is
+$Q_V=\sum_{n,k}r_{nk}^{(j)}\log\pi_{nk}(V)$, a soft-target multinomial
+logistic log-likelihood. Its gradient is
+\[
+\nabla_{v_k}Q_V=\sum_n(r_{nk}^{(j)}-\pi_{nk}(V))\phi_n.
+\]
+One valid generalized-EM update starts at the old $V$ and uses
+\[
+v_k^{\mathrm{new}}=v_k^{\mathrm{old}}
++\eta\sum_n(r_{nk}^{(j)}-\pi_{nk}(V^{\mathrm{old}}))\phi_n,
+\]
+with backtracking on $\eta>0$ until $Q_V(V^{\mathrm{new}})\geq Q_V(V^{\mathrm{old}})$.
+Further steps may be taken with the \emph{same fixed} responsibilities.
+A gradient direction alone is not a guarantee: an excessive step can reduce
+$Q_V$. Increasing the frozen-responsibility $Q$ gives the standard EM lower-bound
+argument for a nondecreasing observed-data likelihood. Exact expert/variance
+maximization and a verified nondecreasing routing block suffice.
+
+After the updates, evaluate the new observed-data log-likelihood. For example,
+stop if its nonnegative relative improvement is less than $\varepsilon$,
+\[
+\frac{\ell^{(j+1)}-\ell^{(j)}}{1+|\ell^{(j)}|}<\varepsilon,
+\]
+subject to a maximum iteration count and a numerical check that the likelihood
+did not decrease beyond round-off tolerance. A parameter-change or gradient
+check can also be used. Multiple initializations reduce sensitivity to local
+solutions. EM/GEM does not guarantee a global optimum of this nonconvex
+observed-likelihood problem; monotonicity is not global optimality.
+\selfcredit{0.5 p for the E-step and frozen-responsibility $Q$; 0.75 p each for expert and variance updates; 1 p for valid routing ascent, a convergence check, and the qualified monotonicity/global-optimum statements.}
+
+\solution{2d}{Routing and responsibility can select different experts}{1}
+Before seeing the target, hard routing chooses $\boxed{\text{expert 1}}$
+because $4/5>1/5$. After seeing $t=2$, the two Gaussian densities are
+\[
+f_1=\frac1{\sqrt{2\pi}}e^{-9/2},\qquad f_2=\frac1{\sqrt{2\pi}}.
+\]
+Thus
+\[
+\boxed{r_1=\frac{4e^{-9/2}}{1+4e^{-9/2}}\approx0.04255,\qquad
+r_2=\frac1{1+4e^{-9/2}}\approx0.95745}.
+\]
+The highest-responsibility choice is now $\boxed{\text{expert 2}}$.
+Routing uses only the input. Responsibility also uses how well each expert
+explains the observed target; expert 2's much larger density outweighs its
+smaller routing probability.
+\selfcredit{0.25 p for hard routing; 0.5 p for responsibilities and posterior selection; 0.25 p for the explanation.}
+
+\solution{2e}{Predictive uncertainty and squared-error prediction}{2}
+At a new input $x$, let $\pi_k=\pi_k(x)$ and
+$m_k=\theta_k^\top\phi(x)$. By conditioning on the latent expert,
+\[
+\boxed{\bar m(x)=\E[T\mid x]=\sum_k\pi_km_k}.
+\]
+Each expert has second moment $s^2+m_k^2$. Therefore
+\begin{align*}
+\Var(T\mid x)
+&=\sum_k\pi_k(s^2+m_k^2)-\bar m^2\\
+&=\boxed{s^2+\sum_k\pi_k(m_k-\bar m)^2}.
+\end{align*}
+The first term is within-expert noise. The second is between-expert
+uncertainty from not knowing which expert generates the target. With
+expert-specific variances the first term would instead be
+$\sum_k\pi_ks_k^2$; here it is simply $s^2$.
+
+For any scalar prediction $q(x)$,
+\[
+\E[(T-q)^2\mid x]
+=\Var(T\mid x)+(\bar m-q)^2,
+\]
+because the cross term involving $T-\bar m$ has zero conditional expectation.
+Thus the optimal squared-error prediction is $\boxed{q(x)=\bar m(x)}$,
+not necessarily the mean of the most likely expert.
+
+In the numerical case,
+\[
+\boxed{\bar m=\tfrac45(-1)+\tfrac15(2)=-\tfrac25=-0.4},
+\]
+\[
+\boxed{\Var(T\mid x)=1+\tfrac45(-\tfrac35)^2+\tfrac15(\tfrac{12}{5})^2
+=\frac{61}{25}=2.44}.
+\]
+Responsibilities $p(z=k\mid x,t)$ require the very target that is being
+predicted. Substituting the values from 2d would use target information that
+is unavailable before observing $T$. For an unobserved target, marginalize
+the expert using $p(z=k\mid x)$, the routing probabilities.
+\selfcredit{0.5 p for mean and variance; 0.5 p for the squared-error argument; 0.5 p for the numerical values; 0.5 p for distinguishing routing from target-conditioned responsibilities.}
+
+\section*{Scope and source alignment}
+The format follows \path{exams/homework-based-exam-1.pdf}: two extended
+exercises, two hours, 18 points, derivations, and follow-up insights. The
+actual second midterm's question count and topic selection are unknown.
+\begin{itemize}
+  \item Exercise 1 develops HW 2 Exercises 1--2, practice sets 3--4, and lectures 6--8. New elements are Laplace/Gaussian class conditionals, a V-shaped Bayes boundary, a new three-point obstruction, exact ReLU features with a direct connection, derivatives through two input paths, and frozen hidden initialization.
+  \item Exercise 2 develops HW 2 Exercise 6, practice set 5, and lecture 9. It replaces the exponential experts with Gaussian regression experts and adds weighted normal equations, a learned shared variance, a verified generalized-EM routing step, indistinguishable experts, and predictive variance.
+  \item Together with Mock A, the pair covers all six HW 2 themes: Naive Bayes, classifier capacity, regularized logistic regression, PCA, generalized Gaussian latent coordinates in PPCA, and mixtures of experts.
+\end{itemize}
+The foundational operations necessarily recur, but no original homework or
+practice-set problem, dataset, or complete derivation sequence is reproduced.
+The questions are intentionally harder than the first midterm; the point total
+does not imply equal workload.
+\end{document}

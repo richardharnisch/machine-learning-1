@@ -1,0 +1,171 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=22mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools,microtype}
+\usepackage{xcolor,enumitem,fancyhdr,booktabs}
+\definecolor{examblue}{HTML}{17365D}
+\definecolor{rulegray}{HTML}{D6DCE4}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textsc{Machine Learning 1}}
+\rhead{\textsc{Mock Midterm 2 --- B}}
+\cfoot{\thepage}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.2em}
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\ReLU}{ReLU}
+\newcommand{\question}[3]{\par\medskip\noindent\textbf{#1}\quad\textbf{[#2 p]}\quad #3\par}
+\newcommand{\answerbox}[1]{\par\smallskip\noindent\fcolorbox{rulegray}{white}{\parbox[t][#1][t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\vspace{1mm}}}\par}
+\newcommand{\exercise}[3]{\section*{\color{examblue}Exercise #1: #2}\textbf{#3}\par}
+
+\begin{document}
+\begin{center}
+  {\Huge\bfseries\color{examblue}Machine Learning 1}\par
+  \vspace{0.4em}
+  {\LARGE\bfseries Mock Homework-based Midterm 2 --- B}\par
+  \vspace{1em}
+  {\large Two hours \qquad 18 points \qquad Two exercises}
+\end{center}
+\vspace{1em}
+\textbf{Name:} \rule{8cm}{0.4pt}\hfill\textbf{Date:} \rule{3cm}{0.4pt}
+
+\section*{Instructions}
+\begin{itemize}
+  \item This is an unofficial, deliberately challenging practice paper, not a prediction of the actual exam.
+  \item Show your reasoning and intermediate steps. Partial credit is available. An unsupported final answer is not sufficient.
+  \item For multivariate derivatives, first derive an arbitrary component in index notation, then assemble the vector or matrix.
+  \item Use numerator layout: the Jacobian of $f:\R^m\to\R^n$ has shape $n\times m$. We write $\nabla_w f$ for the column gradient, so $df/dw=(\nabla_w f)^\top$ for scalar $f$.
+  \item All vectors are columns and all logarithms are natural. Unless stated otherwise, observations are independent.
+  \item Use a basic calculator if needed. Exact expressions are acceptable. Do not use the answer key while attempting the paper.
+  \item Suggested timing: 55 minutes for each exercise, and 10 minutes to check your work.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{llr}
+\toprule
+Exercise & Topic & Points\\
+\midrule
+1 & Classifier capacity and backpropagation & 8\\
+2 & Gaussian mixtures of regression experts & 10\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Useful definitions}
+\[
+\sigma(a)=\frac{1}{1+e^{-a}},\quad \sigma'(a)=\sigma(a)(1-\sigma(a)),
+\quad \ReLU(a)=\max(0,a).
+\]
+Use $\ReLU'(a)=\mathbf1\{a>0\}$, including the convention $\ReLU'(0)=0$.
+\[
+\mathcal N(t\mid\mu,s^2)=\frac{1}{\sqrt{2\pi s^2}}
+\exp\!\left[-\frac{(t-\mu)^2}{2s^2}\right].
+\]
+
+\newpage
+\exercise{1}{A nonlinear Bayes rule and a small neural network}{8 points}
+For $x=(x_1,x_2)^\top\in\R^2$, consider a binary Naive Bayes model
+\[
+p(x\mid C_k)=\operatorname{Laplace}(x_1\mid0,b_k)
+\,\mathcal N(x_2\mid\mu_k,1),\qquad
+\operatorname{Laplace}(r\mid0,b)=\frac{1}{2b}e^{-|r|/b}.
+\]
+Its parameters are
+\[
+(b_1,\mu_1,\pi_1)=(1,\tfrac12,\tfrac13),\qquad
+(b_2,\mu_2,\pi_2)=(2,-\tfrac12,\tfrac23).
+\]
+Use the highest-posterior decision rule. Away from ties, assign $C_1$ when its
+posterior is larger than that of $C_2$.
+
+\question{1a}{2}{Derive the posterior log odds $a(x)=\log[p(C_1\mid x)/p(C_2\mid x)]$, simplifying all constants, and express $p(C_1\mid x)$ as a sigmoid. Give the decision region for $C_1$ and sketch its boundary. Explain why the boundary need not be a single line even though the model is Naive Bayes.}
+\answerbox{7.0cm}
+
+\question{1b}{2}{The three labeled points are $(0,1)\in C_1$ and $(-4,1),(4,1)\in C_2$. Prove that an affine-logit classifier cannot strictly classify all three correctly. Give fixed nonlinear features and weights that reproduce the Bayes log odds for \emph{every} input. On these three points, does unregularized logistic regression with those features have a finite maximum-likelihood weight vector? Justify the distinction between correct labels and a finite MLE.}
+\answerbox{5.0cm}
+
+\newpage
+\textbf{Exercise 1 continued}
+
+Consider a network with a direct input-to-output connection:
+\[
+r=Ux+b,\quad h=\ReLU(r),\quad a=c^\top h+v^\top x+d,\quad y=\sigma(a),
+\]
+where $U\in\R^{2\times2}$, $b,c,v\in\R^2$, and $d\in\R$.
+For a single target $t\in\{0,1\}$, with $t=1$ denoting $C_1$, its loss is
+\[
+L=-t\log y-(1-t)\log(1-y).
+\]
+
+\question{1c}{1}{Give finite $U,b,c,v,d$ that reproduce the exact Bayes log odds from 1a on all of $\R^2$. Identify which terms come through the hidden layer and which term needs the direct connection in your construction.}
+\answerbox{4.0cm}
+
+\question{1d}{2}{Derive the loss derivative with respect to the logit. For nonzero hidden preactivations, derive the component derivatives for $U,b,c,v,d$ and the numerator-layout Jacobian $dL/dx$. Include both paths from the input to the output. As a numerical check, use the \emph{different} parameters
+\[
+U=\begin{pmatrix}1&1\\-1&0\end{pmatrix},\quad b=\begin{pmatrix}-1\\0\end{pmatrix},\quad
+c=\begin{pmatrix}1\\-2\end{pmatrix},\quad v=\begin{pmatrix}0\\1\end{pmatrix},\quad d=-1,
+\]
+with $x=(2,0)^\top$ and $t=1$. Calculate $\nabla_U L$ and $dL/dx$ at this point.}
+\answerbox{8.0cm}
+
+\newpage
+\textbf{Exercise 1 continued}
+
+\question{1e}{1}{A student initializes $U,b,c$ to zero and trains with exact gradient descent on the three points in 1b. The direct-connection parameters $v,d$ may train normally. An optional isotropic zero-mean Gaussian prior gives an $L_2$ penalty on all parameters. Prove that the hidden layer remains inactive at every update under the stated ReLU convention. Can this training run reach a classifier that correctly labels all three points? Explain why weight decay does not resolve this initialization problem.}
+\answerbox{4.0cm}
+
+\exercise{2}{Soft routing among regression experts}{10 points}
+For each labeled pair $(x_n,t_n)$, let $\phi_n=\phi(x_n)\in\R^M$ include an
+intercept. The unobserved expert index $z_n\in\{1,\ldots,K\}$ has routing probabilities
+\[
+\pi_{nk}=p(z_n=k\mid x_n,V)
+=\frac{\exp(v_k^\top\phi_n)}{\sum_j\exp(v_j^\top\phi_n)}.
+\]
+Expert $k$ predicts a Gaussian target,
+\[
+f_{nk}=p(t_n\mid x_n,z_n=k,\Theta,s^2)
+=\mathcal N(t_n\mid\theta_k^\top\phi_n,s^2),
+\]
+where $\theta_k,v_k\in\R^M$, $\Theta=[\theta_1,\ldots,\theta_K]$,
+$V=[v_1,\ldots,v_K]$, and $s^2>0$ is shared by all experts.
+There are no parameter priors in this exercise.
+
+\question{2a}{2}{Let $z_{nk}=\mathbf1\{z_n=k\}$. Write the complete-data joint likelihood, the observed-data likelihood and log-likelihood after marginalizing the expert indices, and the responsibility $r_{nk}=p(z_n=k\mid x_n,t_n)$. State why a product of expert densities is not the required marginal likelihood.}
+\answerbox{5.0cm}
+
+\newpage
+\textbf{Exercise 2 continued}
+
+\question{2b}{2}{Derive, in index notation, the gradients of the \emph{observed-data} log-likelihood with respect to $\theta_k$ and $v_k$. Express the results using responsibilities. If all experts have identical predictive densities at every input, what happens to the routing gradient? Can the data then identify the routing parameters?}
+\answerbox{7.0cm}
+
+\question{2c}{3}{Describe one complete EM or generalized-EM iteration. Write the expected complete-data log-likelihood with the old responsibilities held fixed. Derive the closed-form expert-weight update and the update of the shared variance. Assume each weighted feature Gram matrix is positive definite and the total fitted weighted residual sum is positive. Give a valid routing update when there is no closed-form solution, and a convergence check. Explain what must be checked before claiming that a single gradient step in the routing parameters preserves EM's nondecreasing observed likelihood. Is a global optimum guaranteed?}
+\answerbox{9.0cm}
+
+\newpage
+\textbf{Exercise 2 continued}
+
+At a particular new input, there are two experts. Their routing probabilities,
+predictive means, and shared variance are
+\[
+(\pi_1,\pi_2)=(\tfrac45,\tfrac15),\qquad
+(\mu_1,\mu_2)=(-1,2),\qquad s^2=1.
+\]
+
+\question{2d}{1}{Which expert is selected by hard routing \emph{before} observing the target? If the target is then observed to be $t=2$, calculate both posterior responsibilities, exactly or numerically, and identify the highest-responsibility expert. Explain why these two expert-selection rules can disagree.}
+\answerbox{5.0cm}
+
+\question{2e}{2}{For a general new input, derive the mixture predictive mean and variance, separating within-expert and between-expert uncertainty. Show which scalar prediction minimizes conditional expected squared error. Calculate this prediction and the predictive variance for the numerical case above. Explain why using the responsibilities from 2d instead of the routing probabilities would not be a valid prediction of an \emph{unobserved} target.}
+\answerbox{8.0cm}
+
+\newpage
+\section*{Additional working space}
+Label any answer continued here with its question number.
+\answerbox{18.0cm}
+\vfill
+\begin{center}\textbf{End of Mock Midterm 2 --- B}\end{center}
+\end{document}

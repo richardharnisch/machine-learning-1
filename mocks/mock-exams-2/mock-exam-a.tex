@@ -1,0 +1,187 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=22mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools,microtype}
+\usepackage{xcolor,enumitem,fancyhdr,booktabs}
+\definecolor{examblue}{HTML}{17365D}
+\definecolor{rulegray}{HTML}{D6DCE4}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textsc{Machine Learning 1}}
+\rhead{\textsc{Mock Midterm 2 --- A}}
+\cfoot{\thepage}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.2em}
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\tr}{tr}
+\newcommand{\question}[3]{\par\medskip\noindent\textbf{#1}\quad\textbf{[#2 p]}\quad #3\par}
+\newcommand{\answerbox}[1]{\par\smallskip\noindent\fcolorbox{rulegray}{white}{\parbox[t][#1][t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\vspace{1mm}}}\par}
+\newcommand{\exercise}[3]{\section*{\color{examblue}Exercise #1: #2}\textbf{#3}\par}
+
+\begin{document}
+\begin{center}
+  {\Huge\bfseries\color{examblue}Machine Learning 1}\par
+  \vspace{0.4em}
+  {\LARGE\bfseries Mock Homework-based Midterm 2 --- A}\par
+  \vspace{1em}
+  {\large Two hours \qquad 18 points \qquad Two exercises}
+\end{center}
+\vspace{1em}
+\textbf{Name:} \rule{8cm}{0.4pt}\hfill\textbf{Date:} \rule{3cm}{0.4pt}
+
+\section*{Instructions}
+\begin{itemize}
+  \item This is an unofficial, deliberately challenging practice paper, not a prediction of the actual exam.
+  \item Show your reasoning and intermediate steps. Partial credit is available. An unsupported final answer is not sufficient.
+  \item For multivariate derivatives, first derive an arbitrary component in index notation, then assemble the vector or matrix.
+  \item Use numerator layout: the Jacobian of $f:\R^m\to\R^n$ has shape $n\times m$. We write $\nabla_w f$ for the column gradient, so $df/dw=(\nabla_w f)^\top$ for scalar $f$.
+  \item All vectors are columns. All logarithms are natural. Treat fitted parameters as fixed when making predictions.
+  \item Use a basic calculator if needed. Exact expressions are acceptable. Do not use the answer key while attempting the paper.
+  \item Suggested timing: 65 minutes for Exercise 1, 45 minutes for Exercise 2, and 10 minutes to check your work.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{llr}
+\toprule
+Exercise & Topic & Points\\
+\midrule
+1 & Generative classification and regularized softmax & 10\\
+2 & Affine PCA, a constrained component, and PPCA & 8\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Useful definitions}
+\[
+\sigma(a)=\frac{1}{1+e^{-a}},\qquad
+\operatorname{softmax}(a)_k=\frac{e^{a_k}}{\sum_j e^{a_j}}.
+\]
+For symmetric positive definite $C\in\R^{D\times D}$,
+\[
+\mathcal N(x\mid\mu,C)=\frac{\exp[-\tfrac12(x-\mu)^\top C^{-1}(x-\mu)]}
+{(2\pi)^{D/2}|C|^{1/2}}.
+\]
+
+\newpage
+\exercise{1}{Two sensors, one class-dependent rate}{10 points}
+A device belongs to one of $K$ classes. Two sensors give an input
+$x=(m,s)^\top$, where $m\in\{0,1,\ldots\}$ is a count and $s\geq0$ is a waiting time.
+The sensors are independent \emph{conditional on the class}. For class $C_k$,
+\[
+p(m\mid C_k)=\frac{(2\lambda_k)^m e^{-2\lambda_k}}{m!},\qquad
+p(s\mid C_k)=\lambda_k e^{-\lambda_k s},\qquad \lambda_k>0.
+\]
+The same $\lambda_k$ occurs in both sensors; it is not two separate parameters.
+The class priors $\pi_k>0$, with $\sum_k\pi_k=1$, are also unknown.
+The training observations $(m_n,s_n,t_n)$ are independent, and $t_n$ is a
+one-hot class vector. Define
+\[
+N_k=\sum_n t_{nk},\qquad M_k=\sum_n t_{nk}m_n,\qquad
+S_k=\sum_n t_{nk}s_n.
+\]
+Assume $N_k>0$ for every class.
+
+\question{1a}{3}{Write the joint likelihood of the observed inputs and labels, then its log-likelihood. Derive the maximum-likelihood estimates of \emph{both} $\pi_k$ and $\lambda_k$. Enforce the prior-probability constraint with a Lagrange multiplier and verify that the rate estimate is a maximum.}
+\answerbox{10.0cm}
+
+\newpage
+\textbf{Exercise 1 continued}
+
+For the remaining generative-model questions, use this training summary:
+\begin{center}
+\begin{tabular}{crrr}
+\toprule
+Class & $N_k$ & $M_k$ & $S_k$\\
+\midrule
+$C_1$ & 4 & 12 & 8\\
+$C_2$ & 2 & 14 & 4\\
+$C_3$ & 2 & 2 & 4\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\question{1b}{2}{Calculate the fitted priors and rates. Express the posterior probabilities as a softmax of scores affine in $(m,s)$. Give the two explicit inequalities that define the region in which $C_1$ has posterior probability at least as large as each competitor. If $m$ is temporarily allowed to be a nonnegative real number, is this region convex? Justify your answer.}
+\answerbox{7.0cm}
+
+\question{1c}{1}{For the complete input $(m,s)=(0,\tfrac12)$, identify the highest-posterior class. Now suppose the time sensor fails independently of the input and class, so only $m=0$ is observed. Derive the correct posterior from the count alone and identify its highest-posterior class. Explain why setting the missing waiting time to zero is not marginalization.}
+\answerbox{5.0cm}
+
+\newpage
+\textbf{Exercise 1 continued}
+
+\question{1d}{1}{Generate a new device by sampling its class from the fitted priors, then sample its two sensors from that class. You may use $\E[M\mid C_k]=2\lambda_k$ and $\E[S\mid C_k]=1/\lambda_k$. Derive and calculate the \emph{unconditional} covariance $\Cov(M,S)$. Does conditional independence imply unconditional independence here?}
+\answerbox{4.0cm}
+
+Next, fit a \emph{discriminative} classifier to the original labeled data, using
+$\phi_n=(1,m_n,s_n)^\top$ and freely adjustable $w_k\in\R^3$:
+\[
+y_{nk}=\frac{\exp(w_k^\top\phi_n)}{\sum_j\exp(w_j^\top\phi_n)},\qquad
+p(w_1,\ldots,w_K)=\prod_k\mathcal N(w_k\mid0,(\alpha R)^{-1}).
+\]
+Here $\alpha>0$ and $R\in\R^{3\times3}$ is a known symmetric positive definite
+matrix. The prior includes the intercepts.
+
+\question{1e}{2}{Obtain a negative log-posterior objective, omitting constants independent of the weights. Derive $\partial L/\partial w_{jr}$ in index notation and assemble $\nabla_{w_j}L$. Do not assume that $R$ is diagonal.}
+\answerbox{5.0cm}
+
+\question{1f}{1}{Without the prior, show that replacing every $w_k$ by $w_k+v$, for the same $v\in\R^3$, leaves the predictions unchanged. Prove that the MAP minimizer under the stated prior satisfies $\sum_k w_k=0$. Explain what the prior does to this parameter ambiguity.}
+\answerbox{3.0cm}
+
+\newpage
+\exercise{2}{PCA with an offset and a forbidden direction}{8 points}
+A dataset contains $J$ distinct vectors $x_i\in\R^3$. Vector $x_i$ occurs $n_i>0$
+times among the $N=\sum_i n_i$ observations. Set $q_i=n_i/N$, so $\sum_iq_i=1$.
+The full dataset has mean and covariance
+\[
+\bar x=\sum_iq_ix_i=\begin{pmatrix}4\\-2\\1\end{pmatrix},\qquad
+S=\sum_iq_i(x_i-\bar x)(x_i-\bar x)^\top
+=\begin{pmatrix}5&2&0\\2&5&0\\0&0&1\end{pmatrix}.
+\]
+The covariance uses the $1/N$, not the $1/(N-1)$, convention.
+A one-dimensional \emph{affine} reconstruction uses a unit vector $u$ and an offset $c$:
+\[
+\widehat x_i=c+uu^\top(x_i-c),\qquad
+E(c,u)=\sum_iq_i\|x_i-\widehat x_i\|^2,\qquad u^\top u=1.
+\]
+
+\question{2a}{2}{For a fixed $u$, derive \emph{all} minimizing offsets $c$. Show how the remaining minimization reduces to a trace expression involving $S$ and $uu^\top$. Explain why taking $c=\bar x$ is valid but does not make the offset unique.}
+\answerbox{6.0cm}
+
+\question{2b}{1}{With $c=\bar x$, find an optimal unconstrained unit vector $u$, the retained variance, and the minimum average reconstruction error. For the new input $x_*=(6,-1,3)^\top$, give its scalar coordinate $z_*=u^\top(x_*-\bar x)$, its reconstruction in $\R^3$, and its squared reconstruction error.}
+\answerbox{5.0cm}
+
+\newpage
+\textbf{Exercise 2 continued}
+
+\question{2c}{2}{A measurement policy now forbids the direction $v=(1,1,0)^\top/\sqrt2$: require $u^\top v=0$ as well as $u^\top u=1$. Use a Lagrangian to find all stationary directions of the retained variance. Select the global maximum and give the resulting average reconstruction error. Also reconstruct $x_*$ and calculate its squared error under this constraint.}
+\answerbox{7.0cm}
+
+For the next questions, remove the direction restriction and fit standard PPCA to
+the full dataset of $N$ observations:
+\[
+z\sim\mathcal N(0,1),\qquad
+x=wz+\mu+\epsilon,\qquad \epsilon\sim\mathcal N(0,\tau I_3),
+\]
+with independent $z,\epsilon$ and $\tau>0$. Fix $\mu=\bar x$ and constrain
+$w=\sqrt a\,u_1$, where $a\geq0$ and $u_1$ is the leading eigenvector of $S$.
+The marginal covariance is $C=a u_1u_1^\top+\tau I_3$.
+
+\question{2d}{2}{Write the marginal log-likelihood as a function of $a$ and $\tau$, up to parameter-independent constants, using the eigenvalues of $S$. Derive its maximizing values of $a$ and $\tau$; do not only quote the PPCA formula. Give the fitted $C$ explicitly. Does it equal $S$? Explain the discrepancy in the discarded directions.}
+\answerbox{6.0cm}
+
+\newpage
+\textbf{Exercise 2 continued}
+
+\question{2e}{1}{An alternative parameterization uses $z'\sim\mathcal N(2,9)$ and $x=w'z'+\mu'+\epsilon$, with the \emph{same fitted noise variance} as in 2d. Find $w'$ and $\mu'$ that preserve the fitted marginal distribution of $x$. Could this new latent prior make a one-dimensional PPCA model match $S$ exactly? Justify your answer using covariance rank or eigenvalues.}
+\answerbox{7.0cm}
+
+\section*{Additional working space}
+Label any answer continued here with its question number.
+\answerbox{9.0cm}
+\vfill
+\begin{center}\textbf{End of Mock Midterm 2 --- A}\end{center}
+\end{document}
