@@ -1,0 +1,1 @@
+Erratum: Question 12d should have asked for an answer in terms of the posterior for a good measurement, as opposed to a faulty measurement like it is currently done. This is a typo.

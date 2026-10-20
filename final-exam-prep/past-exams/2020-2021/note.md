@@ -1,0 +1,3 @@
+In the follow I excluded the multiple choice questions as the pdfs of this digital ANS exam it would otherwise include the entire database of MC which we used to generate random subsets per students...
+
+Note, these exams are not fully representative as we had to adopt the questions a bit to make it more suitable for a digital format (slightly less math then usual)
